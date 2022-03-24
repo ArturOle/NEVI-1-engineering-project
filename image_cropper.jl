@@ -1,19 +1,16 @@
-using Distributions
-# using Random
-# using CSV
-# using DataFrames
+# using Distributions
 using Plots
-using Profile
+using Statistics
+# using Profile
 
-using StaticArrays
 using Colors
 using Images
 using FileIO
 
+const MINIMUM_SIZE = (28, 28)
 
-
-function img_to_graph(image_name::String="ISIC_0024944.jpg")
-    image = load("img_for_inż\\$image_name")
+function img_to_graph(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg")
+    image = load("datasets\\HAM10000\\$image_name")
     cv = channelview(image)
     s = size(cv)
     max_x = s[3]
@@ -32,10 +29,8 @@ function img_to_graph(image_name::String="ISIC_0024944.jpg")
         end
     end
 
-    display(img)
     return img
 end
-
 
 function show_partition_matrix(partition_matrix)
     for (i,y) in enumerate(eachrow(partition_matrix))
@@ -45,9 +40,9 @@ function show_partition_matrix(partition_matrix)
 end
 
 function fuzzy_c_means(data, number_of_clusters, m)
-    println("clustering start")
+    
     class_data = data[1:3, :]
-    ϵ = 1e-2
+    ϵ = 1e-1
     U = zeros(Float16, number_of_clusters, size(data,2))
     
     U = init_partition_matrix(U)
@@ -67,31 +62,30 @@ function fuzzy_c_means(data, number_of_clusters, m)
         U = update_partition_table(U, distances, m)
         #J = criterion_function(U, distances)
     end
-    println("clustering done")
 
     classified = classified_pixel(U, data)
     # display(classified)
 
-    scatter(legend=false)
+    #scatter(legend=false)
 
-    for i in 1:number_of_clusters
-        scatter_array_1 = []
-        scatter_array_2 = []
-        scatter_array_3 = []
-        for j in 1:length(data[1, :])
-            if classified[j][2] == i
-                append!(scatter_array_1, classified[j][1][4])
-                append!(scatter_array_2, classified[j][1][5])
-                append!(scatter_array_3, classified[j][1][3])
-            end
-        end
-        scatter!(scatter_array_1, scatter_array_2, alpha=0.3, msize=1)
+    # for i in 1:number_of_clusters
+    #     scatter_array_1 = []
+    #     scatter_array_2 = []
+    #     scatter_array_3 = []
+    #     for j in 1:length(data[1, :])
+    #         if classified[j][2] == i
+    #             append!(scatter_array_1, classified[j][1][4])
+    #             append!(scatter_array_2, classified[j][1][5])
+    #             append!(scatter_array_3, classified[j][1][3])
+    #         end
+    #     end
+    #     scatter!(scatter_array_1, scatter_array_2, alpha=0.3, msize=1)
         
-    end
+    # end
 
     # scatter!(scatter_array_1, scatter_array_2, scatter_array_3)
     # scatter!(V[2,:], V[3, :])
-    display(current())
+    #display(current())
     return (classified, U, V)
     
 end
@@ -289,7 +283,6 @@ function init_random(partition_table)
     return partition_table
 end
 
-
 function middle(img_size::Tuple)
     img_size_h = img_size[1]
     img_size_v = img_size[2]
@@ -309,16 +302,135 @@ function middle_cluster(number_of_clusters, img_size, data)
     end
 
     [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
-    display(findmin(decision_dictionary))
+    return findmin(decision_dictionary)
 end
 
-nr_of_clusters = 5
-img_size = (600, 450)
-fuzzy_c_means(img_to_graph("ISIC_0024940.jpg"), nr_of_clusters, 1.3)
+function cluster_boundries(choosen_cluster::Int64, data)
+    cluster_vector_x = Vector{Int}()
+    cluster_vector_y = Vector{Int}()
 
-# @profile fuzzy_c_means(img_to_graph("ISIC_0024940.jpg"), nr_of_clusters, 1.3)
+    for point in data[1]
+       if point[end] == choosen_cluster
+            append!(cluster_vector_x, [point[end-1][end-1]])
+            append!(cluster_vector_y, [point[end-1][end  ]])
+       end
+    end
 
-# Profile.print(format=:flat)
-# display(data[1])  # Classes and the pixels included
+    return (findminmax(cluster_vector_x), findminmax(cluster_vector_y))
+end
 
-# middle_cluster(nr_of_clusters, img_size, data)
+function findminmax(arr::Vector{Int})
+    max = -Inf
+    min = Inf
+    if length(arr)%2 == 0
+        for i in 1:2:length(arr)
+            if arr[i] > arr[i+1]
+                if arr[i] > max
+                    max = arr[i]
+                end
+                if arr[i+1] < min
+                    min = arr[i+1]
+                end
+            else 
+                if arr[i+1] > max
+                    max = arr[i+1]
+                end
+                if arr[i] < min
+                    min = arr[i]
+                end
+            end
+        end
+    else
+        for i in 1:2:length(arr)-1
+            if arr[i] > arr[i+1]
+                if arr[i] > max
+                    max = arr[i]
+                end
+                if arr[i+1] < min
+                    min = arr[i+1]
+                end
+            else 
+                if arr[i+1] > max
+                    max = arr[i+1]
+                end
+                if arr[i] < min
+                    min = arr[i]
+                end
+            end
+        end
+    end
+    return (min, max)
+end
+
+function crop(img, initial_range, img_size, minimum_size=(256, 256))
+    projected_size = (initial_range[1][2]-initial_range[1][1], initial_range[2][2]-initial_range[2][1])
+    display(projected_size)
+
+    if projected_size < minimum_size
+        println("$projected_size is smaller than $MINIMUM_SIZE")
+        projected_size = MINIMUM_SIZE
+        calculated_range = (
+            (Int(floor(initial_range[1][1] - MINIMUM_SIZE[2]/5)), Int(floor(initial_range[1][2] + MINIMUM_SIZE[2]/5))),
+            (Int(floor(initial_range[2][1] - MINIMUM_SIZE[1]/5)), Int(floor(initial_range[2][2] + MINIMUM_SIZE[1]/5)))
+        )
+    else
+        println("$projected_size is greated than $MINIMUM_SIZE")
+
+        if (projected_size[1]+10, projected_size[2]-10) < img_size
+            calculated_range = (
+                (initial_range[1][1]-5, initial_range[1][2]+5),
+                (initial_range[2][1]-5, initial_range[2][2]+5)
+            )
+        else
+            calculated_range = (
+                (0, img_size[1]),
+                (0, img_size[2])
+            )
+        end
+    end
+
+    img = @view img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
+    display(img)
+
+end
+
+function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024947.jpg")
+    image = load("datasets\\HAM10000\\$image_name")
+    cv = channelview(image)
+    s = size(cv)
+    max_x = s[3]
+    max_y = s[2]
+
+    img = zeros(Float64, 5, max_x*max_y)
+
+    for j in 1:max_y
+        for i in 1:max_x
+            img[1, (j-1)*max_x + i] = cv[1, j, i]
+            img[2, (j-1)*max_x + i] = cv[2, j, i]
+            img[3, (j-1)*max_x + i] = cv[3, j, i]
+            img[4, (j-1)*max_x + i] = i
+            img[5, (j-1)*max_x + i] = j
+        end
+    end     
+        
+    nr_of_clusters = 5
+    img_size = (max_x, max_y)
+        
+    println("clustering of $image_name started")
+    data = fuzzy_c_means(img, nr_of_clusters, 1.3)
+    println("clusterring done")
+
+    # # # # # # # # # # # #
+    #  HDBSCAN/FCMED here #
+    # # # # # # # # # # # #
+    # distance clustering with anomalies detection 
+    # after color clustering
+    
+
+    choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
+    cluster_bounds = cluster_boundries(choosen_cluster, data)
+    cropped_image = crop(image, cluster_bounds, img_size, MINIMUM_SIZE)
+    display(cropped_image)
+end
+
+processing()
