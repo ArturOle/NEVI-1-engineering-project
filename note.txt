@@ -1,0 +1,3 @@
+MST - minimum spanning tree ( Prim )
+
+Single Linkage Clustering
