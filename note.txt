@@ -1,3 +1,8 @@
 MST - minimum spanning tree ( Prim )
 
 Single Linkage Clustering
+
+Data warehouse as data placeholder?
+    - sample data
+    - image data
+    - 

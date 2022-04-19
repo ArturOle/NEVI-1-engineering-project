@@ -7,9 +7,17 @@ using Colors
 using Images
 using FileIO
 
+""" NOTE:
+Current implementation wrongly crop the images with black corners.
+Possible solutions:
+    - Different distance calculating function for choosing 
+      the closest cluster to the center. ( maybe decrease the relevancy of pixels futher from the center )
+
+"""
+
 const MINIMUM_SIZE = (128, 128)
 
-function img_to_graph(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg")
+function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
     """
     Function transforming image into the matrix of points  
     """
@@ -71,7 +79,6 @@ function fuzzy_c_means(data, number_of_clusters, m, quiet::Bool, ϵ=1e-3)
 
     classified = classified_pixel(U, data)
 
-    display(current())
     return (classified, U, V)
     
 end
@@ -450,7 +457,7 @@ function density_clustering(db, quiet::Bool)
     return main_cluster
 end
 
-function findminmax(arr::Vector{Int})
+function findminmax(arr::Vector)
     max = -Inf
     min = Inf
     if length(arr)%2 == 0
@@ -490,10 +497,10 @@ function findminmax(arr::Vector{Int})
             end
         end
     end
-    return (min, max)
+    return (Int(min), Int(max))
 end
 
-function crop(img, initial_range, img_size, minimum_size=(256, 256))
+function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20, 20))
     projected_size = (initial_range[1][2]-initial_range[1][1], initial_range[2][2]-initial_range[2][1])
     display(projected_size)
 
@@ -501,21 +508,22 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256))
         println("$projected_size is smaller than $MINIMUM_SIZE")
         projected_size = MINIMUM_SIZE
         calculated_range = (
-            (Int(floor(initial_range[1][1] - MINIMUM_SIZE[2]/5)), Int(floor(initial_range[1][2] + MINIMUM_SIZE[2]/5))),
-            (Int(floor(initial_range[2][1] - MINIMUM_SIZE[1]/5)), Int(floor(initial_range[2][2] + MINIMUM_SIZE[1]/5)))
+            (Int(ceil(initial_range[1][1] - MINIMUM_SIZE[2]/5)), Int(floor(initial_range[1][2] + MINIMUM_SIZE[2]/5))),
+            (Int(ceil(initial_range[2][1] - MINIMUM_SIZE[1]/5)), Int(floor(initial_range[2][2] + MINIMUM_SIZE[1]/5)))
         )
     else
         println("$projected_size is greated than $MINIMUM_SIZE")
 
-        if (projected_size[1]+10, projected_size[2]-10) < img_size
+        # ERROR - For reimplementation
+        if initial_range[1][1]-border[1]*2 > 0 && initial_range[2][2]+border[1]*2 < img_size[2] && initial_range[2][1]-border[1]*2 > 0 && initial_range[1][2]+border[1]*2 < img_size[1]
             calculated_range = (
-                (initial_range[1][1]-5, initial_range[1][2]+5),
-                (initial_range[2][1]-5, initial_range[2][2]+5)
+                (initial_range[1][1]-border[1], initial_range[1][2]+border[1]),
+                (initial_range[2][1]-border[2], initial_range[2][2]+border[2])
             )
         else
             calculated_range = (
-                (0, img_size[1]),
-                (0, img_size[2])
+                (1, img_size[1]),
+                (1, img_size[2])
             )
         end
     end
@@ -538,7 +546,7 @@ function extract_dimentions(choosen_cluster::Int64, data)
     return hcat(cluster_vector_x, cluster_vector_y)'
 end
 
-function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg")
+function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     image = load("datasets\\HAM10000\\$image_name")
     image = imresize(image, ratio=2/5)
     cv = channelview(image)
@@ -561,9 +569,8 @@ function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg
     nr_of_clusters = 5
     img_size = (max_x, max_y)
         
-    println("clustering of $image_name started")
     data = fuzzy_c_means(img, nr_of_clusters, 1.3)
-    println("clusterring done")
+
 
     # # # # # # # # # # # #
     #  HDBSCAN/FCMED here #
@@ -573,13 +580,20 @@ function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg
     
 
     choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
-    cluster_boundries(choosen_cluster, data)
-    # cropped_image = crop(image, cluster_bounds, img_size, MINIMUM_SIZE)
-    # display(cropped_image)
+    db = extract_dimentions(choosen_cluster, data)
+    main_cluster = density_clustering(db)
+
+    x = [i[2] for i in main_cluster[2]]
+    y = [i[1] for i in main_cluster[2]]
+    cluster_boundries = (findminmax(y), findminmax(x))
+    display(cluster_boundries)
+    # cluster_boundries(choosen_cluster, data)
+    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 1))
+    display(cropped_image)
 end
 
 
-function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg", quiet::Bool)
+function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     image = load("datasets\\HAM10000\\$image_name")
     image = imresize(image, ratio=2/5)
     cv = channelview(image)
@@ -615,9 +629,14 @@ function processing(image_name::String="HAM10000_images_part_1\\ISIC_0024944.jpg
     choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
     db = extract_dimentions(choosen_cluster, data)
     main_cluster = density_clustering(db, true)
+
+    x = [i[2] for i in main_cluster[2]]
+    y = [i[1] for i in main_cluster[2]]
+    cluster_boundries = (findminmax(y), findminmax(x))
+    display(cluster_boundries)
     # cluster_boundries(choosen_cluster, data)
-    # cropped_image = crop(image, cluster_bounds, img_size, MINIMUM_SIZE)
-    # display(cropped_image)
+    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 1))
+    display(cropped_image)
 end
 
 # processing()
