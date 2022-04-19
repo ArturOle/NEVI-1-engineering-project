@@ -1,8 +1,11 @@
 /datasets
 /cancer
 /clustering
+/__pycache__
+
 
 *.png
 *.jpg
 *.jpeg
 *.toml
+
