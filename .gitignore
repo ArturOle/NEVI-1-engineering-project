@@ -2,7 +2,11 @@
 /cancer
 /clustering
 /__pycache__
-
+/API
+/inż
+/preprocessed
+/test_img
+/venv
 
 *.png
 *.jpg

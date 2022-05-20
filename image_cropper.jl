@@ -15,19 +15,21 @@ Possible solutions:
 
 """
 
-const MINIMUM_SIZE = (128, 128)
+
+const MINIMUM_SIZE = (64, 64)
 
 function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
     """
     Function transforming image into the matrix of points  
     """
-    
+    # load and convert to color matrix
     image = load("datasets\\HAM10000\\$image_name")
     cv = channelview(image)
     s = size(cv)
     max_x = s[3]
     max_y = s[2]
 
+    # transform to data in a form of vectors of every dimention
     img = zeros(Float64, 5, max_x*max_y)
 
     for j in 1:max_y
@@ -88,18 +90,26 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
     Implementation of Fuzzy c-means with random inicialization and Gaussian distances
     prepared to work with multi-dimentional data with visualization.
     """
+    # Selection fo only color data 
     class_data = data[1:3, :]
     
+    # initialization of empty partition matrix
     U = zeros(Float16, number_of_clusters, size(data,2))
     
+    # initialization of partition matrix with semi-random values
     U = init_partition_matrix(U)
+    # Choosing the first cluster prototypes
     V = cluster_centers(U, class_data, m)
     
+    # calcualting distances from cluster centers to the points
     distances = euclidian_distances(V, class_data)
+    # saving copy of partition table
     U_prev = U
 
+    # Updating the partition tables based on the calculated distances
     U = update_partition_table(U, distances, m)
 
+    # Criterion function ( currently unused )
     #J = criterion_function(U, distances)
 
     while abs(frobenius_norm(U_prev, U)) > ϵ
@@ -126,7 +136,7 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
                 append!(scatter_array_3, classified[j][1][3])
             end
         end
-        scatter!(scatter_array_1, scatter_array_2, alpha=1., msize=1, markerstrokewidth=0)
+        scatter!(scatter_array_1, scatter_array_2, alpha=1, msize=2, markerstrokewidth=0)
         
     end
 
@@ -339,7 +349,7 @@ function init_random(partition_table)
     return partition_table
 end
 
-function middle(img_size::Tuple)
+function middle(img_size)
     img_size_h = img_size[1]
     img_size_v = img_size[2]
 
@@ -422,94 +432,100 @@ function euclidian_distance_alt(p1, p2)
     return sqrt(sum)
 end
 
-function density_clustering(db)
-    (clustered, cluster_counter) = DBSCAN(db, 7, 5)
-    scatter()
+function density_clustering(db, img_size)
+    (clustered, cluster_counter) = DBSCAN(db, 6.2, 50)
+    mid = middle(img_size)
+    decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
 
+    scatter(legend=true)
     main_cluster = Pair(0, 0)
     for i in -1:cluster_counter 
         cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-        
-        if length(cluster) > length(main_cluster[2])
-            main_cluster = (i=>cluster)
-        end
-
-        scatter!(cluster, label="cluster_label: $i", markersize=3, markerstrokewidth=0)
+        scatter!(cluster, label="clu: $i", markersize=3, markerstrokewidth=0)
     end
     display(current())
 
-    return main_cluster
-    #return (findminmax(cluster_vector_x), findminmax(cluster_vector_y))
-end
-
-function density_clustering(db, quiet::Bool)
-    (clustered, cluster_counter) = DBSCAN(db, 7, 5)
-
-    main_cluster = Pair(0, 0)
-    for i in -1:cluster_counter 
-        cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-
-        if length(cluster) > length(main_cluster[2])
-            main_cluster = (i=>cluster)
+    for point in clustered
+        if point.label > 0
+            append!(
+                decision_dictionary[point.label], 
+                [sqrt(sum([(mid[i]-point.coordinates[i])^2 for i in 1:length(point.coordinates)]))]
+            )
         end
     end
 
-    return main_cluster
+    [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
+    best = findmin(decision_dictionary)
+ 
+    return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
+end
+
+function density_clustering(db, img_size, quiet::Bool)
+    (clustered, cluster_counter) = DBSCAN(db, 6, 50)
+    mid = middle(img_size)
+    decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
+
+    for point in clustered
+        if point.label > 0
+            append!(
+                decision_dictionary[point.label], 
+                [sqrt(sum([(mid[i]-point.coordinates[i])^2 for i in 1:length(point.coordinates)]))]
+            )
+        end
+    end
+
+    [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
+    best = findmin(decision_dictionary)
+ 
+    return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
 end
 
 function findminmax(arr::Vector)
     max = -Inf
     min = Inf
-    if length(arr)%2 == 0
-        for i in 1:2:length(arr)
-            if arr[i] > arr[i+1]
-                if arr[i] > max
-                    max = arr[i]
-                end
-                if arr[i+1] < min
-                    min = arr[i+1]
-                end
-            else 
-                if arr[i+1] > max
-                    max = arr[i+1]
-                end
-                if arr[i] < min
-                    min = arr[i]
-                end
+    l = length(arr)
+    l = l - l%2
+
+    for i in 1:2:l
+        if arr[i] > arr[i+1]
+            if arr[i] > max
+                max = arr[i]
             end
-        end
-    else
-        for i in 1:2:length(arr)-1
-            if arr[i] > arr[i+1]
-                if arr[i] > max
-                    max = arr[i]
-                end
-                if arr[i+1] < min
-                    min = arr[i+1]
-                end
-            else 
-                if arr[i+1] > max
-                    max = arr[i+1]
-                end
-                if arr[i] < min
-                    min = arr[i]
-                end
+            if arr[i+1] < min
+                min = arr[i+1]
+            end
+        else 
+            if arr[i+1] > max
+                max = arr[i+1]
+            end
+            if arr[i] < min
+                min = arr[i]
             end
         end
     end
-    return (Int(min), Int(max))
+
+    return [Int(min), Int(max)]
 end
 
 function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20, 20))
-    projected_size = (initial_range[1][2]-initial_range[1][1], initial_range[2][2]-initial_range[2][1])
-    display(projected_size)
+    # Size of image based on the acquired points
+    projected_size = (
+        initial_range[1][2]-initial_range[1][1], 
+        initial_range[2][2]-initial_range[2][1]
+    )
 
     if projected_size < minimum_size
         println("$projected_size is smaller than $MINIMUM_SIZE")
         projected_size = MINIMUM_SIZE
         calculated_range = (
-            (Int(ceil(initial_range[1][1] - MINIMUM_SIZE[2]/5)), Int(floor(initial_range[1][2] + MINIMUM_SIZE[2]/5))),
-            (Int(ceil(initial_range[2][1] - MINIMUM_SIZE[1]/5)), Int(floor(initial_range[2][2] + MINIMUM_SIZE[1]/5)))
+            (
+                Int(ceil(initial_range[1][1])), 
+                Int(floor(initial_range[1][2]))
+            ),
+            (
+                Int(ceil(initial_range[2][1])), 
+                Int(floor(initial_range[2][2]))
+            )
         )
     else
         println("$projected_size is greated than $MINIMUM_SIZE")
@@ -529,7 +545,7 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
     end
 
     img = @view img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
-    display(img)
+    return img
 
 end
 
@@ -547,8 +563,9 @@ function extract_dimentions(choosen_cluster::Int64, data)
 end
 
 function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
+    gr()
     image = load("datasets\\HAM10000\\$image_name")
-    image = imresize(image, ratio=2/5)
+    image = imresize(image, ratio=1/8)
     cv = channelview(image)
     s = size(cv)
     max_x = s[3]
@@ -566,36 +583,37 @@ function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
         end
     end     
         
-    nr_of_clusters = 5
+    nr_of_clusters = 4
     img_size = (max_x, max_y)
         
     data = fuzzy_c_means(img, nr_of_clusters, 1.3)
 
-
-    # # # # # # # # # # # #
-    #  HDBSCAN/FCMED here #
-    # # # # # # # # # # # #
-    # distance clustering with anomalies detection 
-    # after color clustering
-    
-
     choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
     db = extract_dimentions(choosen_cluster, data)
-    main_cluster = density_clustering(db)
-
+    cluster_size = reverse(db[:, end])
+    main_cluster = density_clustering(db, cluster_size)
+    display(main_cluster)
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
     cluster_boundries = (findminmax(y), findminmax(x))
     display(cluster_boundries)
-    # cluster_boundries(choosen_cluster, data)
-    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 1))
+
+    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 5))
     display(cropped_image)
 end
 
 
 function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_0024943.jpg")
+    println(
+        """
+        ############################################################
+        Processing of image $image_name started
+        ############################################################
+        """
+    )
+    
     image = load("datasets\\HAM10000\\$image_name")
-    image = imresize(image, ratio=2/5)
+    image = imresize(image, ratio=1/8)
     cv = channelview(image)
     s = size(cv)
     max_x = s[3]
@@ -613,30 +631,40 @@ function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_00249
         end
     end     
         
-    nr_of_clusters = 5
+    nr_of_clusters = 4
     img_size = (max_x, max_y)
         
     data = fuzzy_c_means(img, nr_of_clusters, 1.3, true)
 
-
-    # # # # # # # # # # # #
-    #  HDBSCAN/FCMED here #
-    # # # # # # # # # # # #
-    # distance clustering with anomalies detection 
-    # after color clustering
-    
-
     choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
     db = extract_dimentions(choosen_cluster, data)
-    main_cluster = density_clustering(db, true)
-
+    main_cluster = density_clustering(db, img_size, true)
+    display(main_cluster)
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
-    cluster_boundries = (findminmax(y), findminmax(x))
+    cluster_boundries = [findminmax(y), findminmax(x)]
     display(cluster_boundries)
-    # cluster_boundries(choosen_cluster, data)
-    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 1))
-    display(cropped_image)
+    for i in 1:length(cluster_boundries)
+        cluster_boundries[i] = [j*8 for j in cluster_boundries[i]]
+    end
+    display(cluster_boundries)
+
+    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (10, 10))
+    return cropped_image
 end
 
-# processing()
+
+function processing_test()
+    n = 24306
+    for i in 1:100
+
+        out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
+        save("preprocessed\\img_$i.jpg", out)
+        n+=1
+    end
+end
+
+
+# processing("HAM10000_images\\ISIC_0028222.jpg")
+# processing(true, "HAM10000_images\\ISIC_0028333.jpg")
+# processing_test()
