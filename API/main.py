@@ -8,15 +8,11 @@ from typing import Optional
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import uuid
 
-# Firebase
-# from firebase_admin import credentials, firestore, initialize_app, db, storage
+# Firebasews
+from firebase_admin import credentials, initialize_app
 from google.cloud import storage
-from firebase import firebase
-import os
-# from google.cloud import storage
-# from google.oauth2 import service_account
-# from google.cloud import storage
 
 
 class MetaData(BaseModel):
@@ -25,35 +21,21 @@ class MetaData(BaseModel):
     size_y: float = None
 
 
-# You just get your CREDENTIALS on previous step
+# Firebase initialization
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="moledetector.json"  
-db_url='https://moledetector.firebaseio.com'   # Your project url
-firebase = firebase.FirebaseApplication(db_url,None)
+cred = credentials.Certificate("moledetector.json")
+fire = initialize_app(cred)
 client = storage.Client()
 bucket = client.get_bucket('moledetector.appspot.com')
 client.list_buckets()
-# imageBlob = bucket.blob("/")
-# imagePath = "path/to/dir/" + fileName  # Replace with your own path
-# imageBlob = bucket.blob(fileName)
-# imageBlob.upload_from_filename(imagePath)
-
-# Firebase initialization
-# cred = credentials.Certificate("moledetector.json")
-# initialize_app(cred, {'storageBucket': 'moledetector.appspot.com'})
-# firedb = storage.
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "moledetector.json"
-# storage_client = storage.Client()
-
-# # List all the buckets available (@ScottMcC code)
-# for bucket in storage_client.list_buckets():
-#     print(bucket)
-
-# #or you can list it
-# list(storage_client.list_buckets())
 
 # FastAPI initialization
-app = FastAPI()
+app = FastAPI(debug=False)
 templates = Jinja2Templates(directory="templates")
+
+def save_file(filename, data):
+    with open(filename, 'wb') as f:
+        f.write(data)
 
 @app.get("/", response_class=HTMLResponse)
 async def welcome():
@@ -72,9 +54,20 @@ async def welcome():
 @app.get("/firebase/")
 async def firebase_info():
     buckets=[]
-    for bucket in storage_client.list_buckets():
+    for bucket in client.list_buckets():
         buckets.append(bucket)
-    return buckets
+    return str(buckets)
+
+@app.post("/firebase/post")
+async def firebase_post(file: Optional[UploadFile] = None):
+    imageBlob = bucket.blob("")
+    file.filename = f"{uuid.uuid4()}.jpg"
+    imageBlob = bucket.blob("images/"+file.filename)
+    contents = await file.read()
+    save_file(file.filename, contents)
+    imageBlob.upload_from_filename(file.filename) # Upload your image
+    os.remove(file.filename)
+    return {"filename": file.filename}
 
 @app.get("/img_in_db/", response_class=HTMLResponse)
 async def show_files():
@@ -87,9 +80,10 @@ async def show_files():
             <h1>Files: {files}</h1>
         </body>
         </html>   
-    """.format(files="\n".join(db))
+    """.format(files="\n".join(["a", "b"]))
 
 @app.post("/images/")
 async def create_upload_file(file: Optional[UploadFile] = None):
     # db.append(file.filename)
     return {"filename": file.filename}
+

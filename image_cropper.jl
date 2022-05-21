@@ -16,7 +16,7 @@ Possible solutions:
 """
 
 
-const MINIMUM_SIZE = (64, 64)
+const MINIMUM_SIZE = (256, 256)
 
 function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
     """
@@ -316,7 +316,6 @@ function update_partition_table(partition_table, distances, m)
                 partition_table[row, col] = (distances[col, row]^(2/(1-m)))/dist_sum
             end
         end
-
     end
 
     return partition_table
@@ -438,7 +437,6 @@ function density_clustering(db, img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
 
     scatter(legend=true)
-    main_cluster = Pair(0, 0)
     for i in -1:cluster_counter 
         cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
         scatter!(cluster, label="clu: $i", markersize=3, markerstrokewidth=0)
@@ -516,25 +514,34 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
 
     if projected_size < minimum_size
         println("$projected_size is smaller than $MINIMUM_SIZE")
-        projected_size = MINIMUM_SIZE
         calculated_range = (
             (
-                Int(ceil(initial_range[1][1])), 
-                Int(floor(initial_range[1][2]))
+                Int(ceil(initial_range[1][1]+(minimum_size[1]/2)+border[1])), 
+                Int(floor(initial_range[1][2]-(minimum_size[1]/2)-border[1]))
             ),
             (
-                Int(ceil(initial_range[2][1])), 
-                Int(floor(initial_range[2][2]))
+                Int(ceil(initial_range[2][1]+(minimum_size[2]/2)+border[2])), 
+                Int(floor(initial_range[2][2]-(minimum_size[2]/2)-border[2]))
             )
+        )
+    elseif projected_size > img_size
+        println("$projected_size is greated than $img_size")
+        calculated_range = (
+            (1, img_size[1]),
+            (1, img_size[2])
         )
     else
         println("$projected_size is greated than $MINIMUM_SIZE")
 
-        # ERROR - For reimplementation
-        if initial_range[1][1]-border[1]*2 > 0 && initial_range[2][2]+border[1]*2 < img_size[2] && initial_range[2][1]-border[1]*2 > 0 && initial_range[1][2]+border[1]*2 < img_size[1]
+        x_lower = initial_range[1][1]-border[1]
+        x_higher = initial_range[1][2]+border[1]
+        y_lower = initial_range[2][1]-border[2]
+        y_higher = initial_range[2][2]+border[2]
+
+        if x_lower > 0 && x_higher < img_size[1] && y_lower > 0 && y_higher < img_size[2]
             calculated_range = (
-                (initial_range[1][1]-border[1], initial_range[1][2]+border[1]),
-                (initial_range[2][1]-border[2], initial_range[2][2]+border[2])
+                (x_lower, x_higher),
+                (y_lower, y_higher)
             )
         else
             calculated_range = (
@@ -544,7 +551,7 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
         end
     end
 
-    img = @view img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
+    img = img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
     return img
 
 end
@@ -559,15 +566,18 @@ function extract_dimentions(choosen_cluster::Int64, data)
             append!(cluster_vector_y, [point[end-1][end  ]])
         end
     end
+    
     return hcat(cluster_vector_x, cluster_vector_y)'
 end
 
 function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     gr()
     image = load("datasets\\HAM10000\\$image_name")
-    image = imresize(image, ratio=1/8)
-    cv = channelview(image)
+    resized_image = imresize(image, ratio=1/8)
+    original_size = size(image)
+    cv = channelview(resized_image)
     s = size(cv)
+
     max_x = s[3]
     max_y = s[2]
 
@@ -584,7 +594,8 @@ function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     end     
         
     nr_of_clusters = 4
-    img_size = (max_x, max_y)
+    img_size = [max_x, max_y]
+    original_size = (original_size[2], original_size[1])
         
     data = fuzzy_c_means(img, nr_of_clusters, 1.3)
 
@@ -592,13 +603,30 @@ function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     db = extract_dimentions(choosen_cluster, data)
     cluster_size = reverse(db[:, end])
     main_cluster = density_clustering(db, cluster_size)
+
     display(main_cluster)
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
+
     cluster_boundries = (findminmax(y), findminmax(x))
     display(cluster_boundries)
 
-    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (5, 5))
+    for i in 1:length(cluster_boundries)
+        cluster_boundries[i] = [j*8 for j in cluster_boundries[i]]
+    end
+
+    display(cluster_boundries)
+    img_size = img_size.*8
+
+    if img_size[1] > original_size[2]
+        img_size[1] = original_size[2]
+    end
+
+    if img_size[2] > original_size[3]
+        img_size[2] = original_size[3]
+    end
+
+    cropped_image = crop(image, cluster_boundries, original_size, MINIMUM_SIZE, (0, 0))
     display(cropped_image)
 end
 
@@ -613,8 +641,9 @@ function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_00249
     )
     
     image = load("datasets\\HAM10000\\$image_name")
-    image = imresize(image, ratio=1/8)
-    cv = channelview(image)
+    original_size = size(image)
+    resized_image = imresize(image, ratio=1/8)
+    cv = channelview(resized_image)
     s = size(cv)
     max_x = s[3]
     max_y = s[2]
@@ -632,32 +661,46 @@ function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_00249
     end     
         
     nr_of_clusters = 4
-    img_size = (max_x, max_y)
+    img_size = [max_x, max_y]
+    original_size = (original_size[2], original_size[1])
         
     data = fuzzy_c_means(img, nr_of_clusters, 1.3, true)
-
     choosen_cluster = middle_cluster(nr_of_clusters, img_size, data)[2]
     db = extract_dimentions(choosen_cluster, data)
     main_cluster = density_clustering(db, img_size, true)
     display(main_cluster)
+
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
+
     cluster_boundries = [findminmax(y), findminmax(x)]
     display(cluster_boundries)
-    for i in 1:length(cluster_boundries)
-        cluster_boundries[i] = [j*8 for j in cluster_boundries[i]]
-    end
-    display(cluster_boundries)
 
-    cropped_image = crop(image, cluster_boundries, img_size, MINIMUM_SIZE, (10, 10))
+    for i in 1:length(cluster_boundries)
+        cluster_boundries[i] = 8*cluster_boundries[i]
+    end
+
+    display(cluster_boundries)
+    img_size = img_size.*8
+
+    if img_size[1] > original_size[1]
+        img_size[1] = original_size[1]
+    end
+
+    if img_size[2] > original_size[2]
+        img_size[2] = original_size[2]
+    end
+
+    cropped_image = crop(image, cluster_boundries, original_size, MINIMUM_SIZE, (10, 10))
     return cropped_image
 end
 
 
 function processing_test()
-    n = 24306
-    for i in 1:100
 
+    n = 24307
+
+    for i in 1:100
         out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
         save("preprocessed\\img_$i.jpg", out)
         n+=1
@@ -666,5 +709,5 @@ end
 
 
 # processing("HAM10000_images\\ISIC_0028222.jpg")
-# processing(true, "HAM10000_images\\ISIC_0028333.jpg")
-# processing_test()
+#processing(true, "HAM10000_images\\ISIC_0028339.jpg")
+processing_test()
