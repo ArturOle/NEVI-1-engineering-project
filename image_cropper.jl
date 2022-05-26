@@ -432,7 +432,7 @@ function euclidian_distance_alt(p1, p2)
 end
 
 function density_clustering(db, img_size)
-    (clustered, cluster_counter) = DBSCAN(db, 6.2, 50)
+    (clustered, cluster_counter) = DBSCAN(db, 6.2, 60)
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
 
@@ -459,7 +459,7 @@ function density_clustering(db, img_size)
 end
 
 function density_clustering(db, img_size, quiet::Bool)
-    (clustered, cluster_counter) = DBSCAN(db, 6, 50)
+    (clustered, cluster_counter) = DBSCAN(db, 6, 30)
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
 
@@ -511,27 +511,61 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
         initial_range[1][2]-initial_range[1][1], 
         initial_range[2][2]-initial_range[2][1]
     )
-
+    
     if projected_size < minimum_size
-        println("$projected_size is smaller than $MINIMUM_SIZE")
-        calculated_range = (
-            (
-                Int(ceil(initial_range[1][1]+(minimum_size[1]/2)+border[1])), 
-                Int(floor(initial_range[1][2]-(minimum_size[1]/2)-border[1]))
-            ),
-            (
-                Int(ceil(initial_range[2][1]+(minimum_size[2]/2)+border[2])), 
-                Int(floor(initial_range[2][2]-(minimum_size[2]/2)-border[2]))
+        println("$projected_size is smaller than $minimum_size")
+
+        x_move_l = abs(Int(ceil((minimum_size[1] - projected_size[1])/2)))
+        y_move_l = abs(Int(ceil((minimum_size[2] - projected_size[1])/2)))
+        x_move_h = abs(Int(floor((minimum_size[1] - projected_size[2])/2)))
+        y_move_h = abs(Int(floor((minimum_size[2] - projected_size[2])/2)))
+
+        display((x_move_l, x_move_h, y_move_l, y_move_h))
+
+        x_lower = initial_range[1][1] - x_move_l
+        x_higher = initial_range[1][2] + x_move_h
+        y_lower = initial_range[2][1] - y_move_l
+        y_higher = initial_range[2][2] + y_move_h
+
+        display((x_lower, x_higher, y_lower, y_higher))
+
+        if x_lower <= 0
+            calculated_range = (
+                (x_lower + x_move_l, x_higher + x_move_l),
+                (y_lower, y_higher)
             )
-        )
+        elseif y_lower <= 0
+            calculated_range = (
+                (x_lower, x_higher),
+                (y_lower + y_move_l, y_higher + y_move_l)
+            )
+        elseif x_higher >= img_size[1]
+            calculated_range = (
+                (x_lower - x_move_h, x_higher - x_move_h),
+                (y_lower, y_higher)
+            )
+        elseif y_higher >= img_size[2]
+            calculated_range = (
+                (x_lower, x_higher),
+                (y_lower - y_move_h, y_higher - y_move_h)
+            )
+        else
+            calculated_range = (
+                (x_lower, x_higher),
+                (y_lower, y_higher)
+            )
+        end
+
     elseif projected_size > img_size
         println("$projected_size is greated than $img_size")
+
         calculated_range = (
             (1, img_size[1]),
             (1, img_size[2])
         )
+
     else
-        println("$projected_size is greated than $MINIMUM_SIZE")
+        println("$projected_size is greated than $minimum_size")
 
         x_lower = initial_range[1][1]-border[1]
         x_higher = initial_range[1][2]+border[1]
@@ -551,7 +585,7 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
         end
     end
 
-    img = img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
+    img = @view img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
     return img
 
 end
@@ -608,28 +642,27 @@ function processing(image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
 
-    cluster_boundries = (findminmax(y), findminmax(x))
+    cluster_boundries = [findminmax(y), findminmax(x)]
     display(cluster_boundries)
 
     for i in 1:length(cluster_boundries)
-        cluster_boundries[i] = [j*8 for j in cluster_boundries[i]]
+        cluster_boundries[i] = 8*cluster_boundries[i]
     end
 
     display(cluster_boundries)
     img_size = img_size.*8
 
-    if img_size[1] > original_size[2]
-        img_size[1] = original_size[2]
+    if img_size[1] > original_size[1]
+        img_size[1] = original_size[1]
     end
 
-    if img_size[2] > original_size[3]
-        img_size[2] = original_size[3]
+    if img_size[2] > original_size[2]
+        img_size[2] = original_size[2]
     end
 
-    cropped_image = crop(image, cluster_boundries, original_size, MINIMUM_SIZE, (0, 0))
+    cropped_image = crop(image, cluster_boundries, original_size, MINIMUM_SIZE, (10, 10))
     display(cropped_image)
 end
-
 
 function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_0024943.jpg")
     println(
@@ -695,10 +728,8 @@ function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_00249
     return cropped_image
 end
 
-
 function processing_test()
-
-    n = 24307
+    n = 24408
 
     for i in 1:100
         out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
@@ -707,7 +738,6 @@ function processing_test()
     end
 end
 
-
-# processing("HAM10000_images\\ISIC_0028222.jpg")
+processing("HAM10000_images\\ISIC_0028245.jpg")
 #processing(true, "HAM10000_images\\ISIC_0028339.jpg")
-processing_test()
+# processing_test()
