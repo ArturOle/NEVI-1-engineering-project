@@ -20,7 +20,7 @@ class Server:
         except Error as err:
             print(err)
 
-    def query_script(self, query_script_name):
+    def query_script(self, query_script_name: str) -> None:
         query_string = None
 
         with open(query_script_name, 'r') as file:
