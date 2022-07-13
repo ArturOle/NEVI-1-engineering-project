@@ -4,15 +4,17 @@ mutable struct Point
     coordinates::Vector{Float64}
 end
 
-function middle(img_size)
-    img_size_h = img_size[1]
-    img_size_v = img_size[2]
 
-    middle_h = Int64(floor(img_size_h/2))
-    middle_v = Int64(floor(img_size_v/2))
+function middle(range)
+    range_h = range[1]
+    range_v = range[2]
+
+    middle_h = Int64(floor(range_h/2))
+    middle_v = Int64(floor(range_v/2))
 
     return (middle_h, middle_v)
 end
+
 
 function find_neighbors(data, point, eps)
     number_of_neighbors = 0

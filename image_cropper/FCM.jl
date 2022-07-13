@@ -11,7 +11,6 @@ function show_partition_matrix(partition_matrix)
 end
 
 
-
 function classified_pixel(U, data)
     classified = []
 
@@ -21,6 +20,7 @@ function classified_pixel(U, data)
 
     return classified
 end
+
 
 function init_partition_matrix(partition_table)
     height = length(partition_table[:, 1])
@@ -46,6 +46,7 @@ function init_partition_matrix(partition_table)
     return partition_table
 end
 
+
 function init_random_partition_matrix(partition_matrix)
     for (k, member) in enumerate(eachcol(partition_matrix))
         resources = 1
@@ -59,6 +60,7 @@ function init_random_partition_matrix(partition_matrix)
 
     return partition_matrix
 end
+
 
 function cluster_centers(partition_table, data)  #  prototype
     """
@@ -82,6 +84,7 @@ function cluster_centers(partition_table, data)  #  prototype
     return rotr90(v)
 end
 
+
 function cluster_centers(partition_table, data, m) 
     """
     Calculating centroid center prototypes for fuzzy clustering
@@ -104,6 +107,7 @@ function cluster_centers(partition_table, data, m)
     return rotr90(v)
 end
 
+
 function frobenius_norm(m1, m2)
     summed_first = 0.0
     summed_second = 0.0
@@ -115,6 +119,7 @@ function frobenius_norm(m1, m2)
     end
     return sqrt(summed_first) - sqrt(summed_second)
 end
+
 
 function euclidian_distances(v1, v2)
     """
@@ -139,6 +144,7 @@ function euclidian_distances(v1, v2)
     return d'
 end
 
+
 function euclidian_distances_sqrd(v1::Matrix, v2::Matrix)
     v1 = [v1[i, :] for i in 1:size(v1,1)]
     v2 = [v2[i, :] for i in 1:size(v2,1)]
@@ -157,6 +163,7 @@ function euclidian_distances_sqrd(v1::Matrix, v2::Matrix)
 
     return d'
 end
+
 
 function update_partition_table(partition_table, distances, m)
     partition_table = zeros(Float64, size(partition_table,1), size(partition_table,2))
@@ -186,6 +193,7 @@ function update_partition_table(partition_table, distances, m)
     return partition_table
 end
 
+
 function criterion_function(partition_table, distances)
     J = 0
     for column in 1:size(partition_table,2)
@@ -195,6 +203,7 @@ function criterion_function(partition_table, distances)
     end
     return J
 end
+
 
 function init_random(partition_table)
     height = length(eachrow(partition_table))
@@ -212,6 +221,7 @@ function init_random(partition_table)
     end
     return partition_table
 end
+
 
 function fuzzy_c_means(data, number_of_clusters, m, quiet::Bool, ϵ=1e-3)
     """
