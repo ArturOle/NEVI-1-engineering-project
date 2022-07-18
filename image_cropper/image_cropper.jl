@@ -17,10 +17,6 @@ Possible Solution:
     -   HDBSCAN
     -   Parameter Approximation ( as values are int, pixel location values )
 
-Optimization:
-    There is possibility to reuse distance data from the fuzzy c-means inside the DBSCAN.
-    This manouver would greately reduce execution time with no direct disadvantage.
-
 """
 
 # Minimum size the image can be cropped to 
@@ -57,10 +53,15 @@ end
 
 function middle_cluster(number_of_clusters, img_size, data)
     mid = middle(img_size)
-    decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:number_of_clusters])
+    decision_dictionary = Dict{Int, Vector{Float64}}(
+        [[x,[]] for x in 1:number_of_clusters]
+    )
 
     for point in data[1]
-        append!(decision_dictionary[point[end]], [sqrt((mid[1]-point[1][end-1])^2 + (mid[2] - point[1][end])^2)])
+        append!(
+            decision_dictionary[point[end]], 
+            [sqrt((mid[1]-point[1][end-1])^2 + (mid[2] - point[1][end])^2)]
+        )
     end
 
     [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
@@ -131,7 +132,10 @@ function image_to_graph(image)
     return (img, [max_x, max_y])
 end
 
-function get_image(image_name::String="ISIC_0024943.jpg", directory::String="datasets\\HAM10000\\HAM10000_images")
+function get_image(
+        image_name::String="ISIC_0024943.jpg",
+        directory::String="datasets\\HAM10000\\HAM10000_images"
+        )
     image = load("$directory\\$image_name")
     resized_image = imresize(image, ratio=1/8)
     original_size = size(image)
@@ -150,7 +154,14 @@ function resize_cluster_boundries(main_cluster)
     end
 end
 
-function processing(;image_name::String="ISIC_0024943.jpg", directory::String="datasets\\HAM10000\\HAM10000_images", number_of_clusters=4, m=1.3, border=(10,10), plot_engine=gr)
+function processing(
+        ;image_name::String="ISIC_0024943.jpg",
+        directory::String="datasets\\HAM10000\\HAM10000_images",
+        number_of_clusters=4,
+        m=1.3,
+        border=(10,10),
+        plot_engine=gr)
+
     println(
         """
         ############################################################
@@ -170,7 +181,13 @@ function processing(;image_name::String="ISIC_0024943.jpg", directory::String="d
     main_cluster = density_clustering(db, cluster_size)
     cluster_boundries = resize_cluster_boundries(main_cluster)
 
-    cropped_image = crop(image, cluster_boundries, original_size, minimum_size=MINIMUM_SIZE, border=border)
+    cropped_image = crop(
+        image,
+        cluster_boundries,
+        original_size,
+        minimum_size=MINIMUM_SIZE,
+        border=border
+    )
     return cropped_image
 end
 
@@ -180,8 +197,9 @@ function processing(
         directory::String="datasets\\HAM10000\\HAM10000_images", 
         number_of_clusters=4, 
         m=1.3, 
-        border=(10,10), 
-        plot_engine=gr)
+        border=(10,10)
+        )
+
     (resized_image, original_size) = get_image(image_name, directory)
     (img, img_size) = image_to_graph(resized_image)
         
@@ -193,7 +211,13 @@ function processing(
     main_cluster = density_clustering(db, cluster_size, true)
     cluster_boundries = resize_cluster_boundries(main_cluster)
 
-    cropped_image = crop(image, cluster_boundries, original_size, minimum_size=MINIMUM_SIZE, border=border)
+    cropped_image = crop(
+        image, 
+        cluster_boundries, 
+        original_size, 
+        minimum_size=MINIMUM_SIZE, 
+        border=border
+    )
     return cropped_image
 end
 
