@@ -23,6 +23,7 @@ Possible Solution:
 const MINIMUM_SIZE = (256, 256)
 
 function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
+
     """
     Function transforming image into the matrix of points  
     """
@@ -52,6 +53,7 @@ end
 
 
 function middle_cluster(number_of_clusters, img_size, data)
+
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}(
         [[x,[]] for x in 1:number_of_clusters]
@@ -70,6 +72,7 @@ end
 
 
 function findminmax(arr::Vector)
+
     max = -Inf
     min = Inf
     l = length(arr)
@@ -98,6 +101,7 @@ end
 
 
 function extract_dimentions(choosen_cluster::Int64, data)
+
     cluster_vector_x = Vector{Int}()
     cluster_vector_y = Vector{Int}()
 
@@ -112,6 +116,7 @@ function extract_dimentions(choosen_cluster::Int64, data)
 end
 
 function image_to_graph(image)
+
     cv = channelview(image)
     img = zeros(Float64, 5, max_x*max_y)
     s = size(cv)
@@ -136,6 +141,7 @@ function get_image(
         image_name::String="ISIC_0024943.jpg",
         directory::String="datasets\\HAM10000\\HAM10000_images"
         )
+    
     image = load("$directory\\$image_name")
     resized_image = imresize(image, ratio=1/8)
     original_size = size(image)
@@ -143,6 +149,7 @@ function get_image(
 end
 
 function resize_cluster_boundries(main_cluster)
+
     x = [i[2] for i in main_cluster[2]]
     y = [i[1] for i in main_cluster[2]]
 
@@ -160,7 +167,8 @@ function processing(
         number_of_clusters=4,
         m=1.3,
         border=(10,10),
-        plot_engine=gr)
+        plot_engine=gr
+        )
 
     println(
         """
@@ -222,6 +230,7 @@ function processing(
 end
 
 function processing_test()
+
     n = 24408
 
     for i in 1:100
@@ -232,6 +241,7 @@ function processing_test()
 end
 
 function process_all()
+
     files = readdir("datasets\\HAM10000\\HAM10000_images")
     display(files)
 

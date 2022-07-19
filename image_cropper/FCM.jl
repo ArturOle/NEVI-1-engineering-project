@@ -1,6 +1,7 @@
 
 
 function show_partition_matrix(partition_matrix)
+
     """
     Pretty print for partition matrix
     """
@@ -12,6 +13,7 @@ end
 
 
 function classified_pixel(U, data)
+
     classified = []
 
     for (i, x) in enumerate(eachcol(U))
@@ -23,6 +25,7 @@ end
 
 
 function init_partition_matrix(partition_table)
+
     height = length(partition_table[:, 1])
     len = length(partition_table[1, :])
 
@@ -48,6 +51,7 @@ end
 
 
 function init_random_partition_matrix(partition_matrix)
+
     for (k, member) in enumerate(eachcol(partition_matrix))
         resources = 1
         for i in 1:length(member)-1
@@ -62,7 +66,8 @@ function init_random_partition_matrix(partition_matrix)
 end
 
 
-function cluster_centers(partition_table, data)  #  prototype
+function cluster_centers(partition_table, data)
+
     """
     Calculating centroid center prototypes for hard clustering
     """
@@ -86,6 +91,7 @@ end
 
 
 function cluster_centers(partition_table, data, m) 
+
     """
     Calculating centroid center prototypes for fuzzy clustering
     """
@@ -109,6 +115,7 @@ end
 
 
 function frobenius_norm(m1, m2)
+
     summed_first = 0.0
     summed_second = 0.0
     for i in 1:size(m1,2)
@@ -122,6 +129,7 @@ end
 
 
 function euclidian_distances(v1, v2)
+
     """
     Calculating distances between two points in multiple dimentions which
     are described as vectors
@@ -146,6 +154,7 @@ end
 
 
 function euclidian_distances_sqrd(v1::Matrix, v2::Matrix)
+
     v1 = [v1[i, :] for i in 1:size(v1,1)]
     v2 = [v2[i, :] for i in 1:size(v2,1)]
     s = size(v1,1)
@@ -166,6 +175,7 @@ end
 
 
 function update_partition_table(partition_table, distances, m)
+
     partition_table = zeros(Float64, size(partition_table,1), size(partition_table,2))
     height = length(partition_table[:, 1])
     len = length(partition_table[1, :])
@@ -195,6 +205,7 @@ end
 
 
 function criterion_function(partition_table, distances)
+
     J = 0
     for column in 1:size(partition_table,2)
         for row in 1:size(partition_table,1)
@@ -206,6 +217,7 @@ end
 
 
 function init_random(partition_table)
+
     height = length(eachrow(partition_table))
     for (i, _) in enumerate(eachcol(partition_table))
         partition_table[rand(1:height), i] = 1
@@ -224,6 +236,7 @@ end
 
 
 function fuzzy_c_means(data, number_of_clusters, m, quiet::Bool, ϵ=1e-3)
+
     """
     Quiet implementation of Fuzzy c-means with random inicialization and Gaussian distances
     prepared to work with multi-dimentional data.
@@ -254,6 +267,7 @@ end
 
 
 function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
+
     """
     Implementation of Fuzzy c-means with random inicialization and Gaussian distances
     prepared to work with multi-dimentional data with visualization.
@@ -289,7 +303,7 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
     end
 
     classified = classified_pixel(U, data)
-    # display(classified)
+
 
     scatter(legend=false)
 

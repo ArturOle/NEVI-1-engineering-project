@@ -6,6 +6,7 @@ end
 
 
 function middle(range)
+
     range_h = range[1]
     range_v = range[2]
 
@@ -17,6 +18,7 @@ end
 
 
 function find_neighbors(data, point, eps)
+
     number_of_neighbors = 0
     neighbors = []
 
@@ -45,6 +47,7 @@ end
 
 
 function DBSCAN(data, eps, min_cluster_size)
+
     cluster_counter = 0
     point_data = [Point(0, p) for p in eachcol(data)]
 
@@ -76,6 +79,7 @@ end
 
 
 function density_clustering(db, img_size; eps=6.2, cluster_size=60)
+
     (clustered, cluster_counter) = DBSCAN(db, eps, cluster_size)
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
@@ -104,6 +108,7 @@ end
 
 
 function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
+
     (clustered, cluster_counter) = DBSCAN(db, eps, cluster_size)
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}([[x,[]] for x in 1:cluster_counter])
