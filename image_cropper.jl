@@ -8,14 +8,19 @@ using Images
 using FileIO
 
 """ NOTE:
-Current implementation wrongly crop the images with black corners.
-Possible solutions:
-    - Different distance calculating function for choosing 
-      the closest cluster to the center. ( maybe decrease the relevancy of pixels futher from the center )
+Current implementation has problems with choosing the densitu for DBSCAN
+
+Possible Solution:
+    -   HDBSCAN
+    -   Parameter Approximation ( as values are int, pixel location values )
+
+Optimization:
+    There is possibility to reuse distance data from the fuzzy c-means inside the DBSCAN.
+    This manouver would greately reduce execution time with no direct disadvantage.
 
 """
 
-
+# Minimum size the image can be cropped to 
 const MINIMUM_SIZE = (256, 256)
 
 function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
@@ -136,7 +141,7 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
                 append!(scatter_array_3, classified[j][1][3])
             end
         end
-        scatter!(scatter_array_1, scatter_array_2, alpha=1, msize=2, markerstrokewidth=0)
+        scatter!(scatter_array_1, scatter_array_2, alpha=1, msize=4, markerstrokewidth=0)
         
     end
 
@@ -240,8 +245,8 @@ function cluster_centers(partition_table, data, m)
 end
 
 function frobenius_norm(m1, m2)
-    summed_first = 0
-    summed_second = 0
+    summed_first = 0.0
+    summed_second = 0.0
     for i in 1:size(m1,2)
         for j in 1:size(m2,1)
             summed_first += m1[j,i]^2
@@ -439,7 +444,7 @@ function density_clustering(db, img_size)
     scatter(legend=true)
     for i in -1:cluster_counter 
         cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-        scatter!(cluster, label="clu: $i", markersize=3, markerstrokewidth=0)
+        scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
     end
     display(current())
 
@@ -507,53 +512,61 @@ end
 
 function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20, 20))
     # Size of image based on the acquired points
+    if initial_range[1][2] > img_size[1]
+        initial_range[1][2] = img_size[1]
+    end
+    if initial_range[2][2] > img_size[2]
+        initial_range[2][2] = img_size[2]
+    end
     projected_size = (
         initial_range[1][2]-initial_range[1][1], 
         initial_range[2][2]-initial_range[2][1]
     )
-    
+    calculated_range = initial_range
+    # calculated_range = ()
     if projected_size < minimum_size
         println("$projected_size is smaller than $minimum_size")
+    
+        if projected_size[1] < minimum_size[1]
+            x_move = Int(ceil((minimum_size[1] - projected_size[1])/2))
 
-        x_move_l = abs(Int(ceil((minimum_size[1] - projected_size[1])/2)))
-        y_move_l = abs(Int(ceil((minimum_size[2] - projected_size[1])/2)))
-        x_move_h = abs(Int(floor((minimum_size[1] - projected_size[2])/2)))
-        y_move_h = abs(Int(floor((minimum_size[2] - projected_size[2])/2)))
+            x_lower = calculated_range[1][1] - x_move
+            x_higher = calculated_range[1][2] + x_move
 
-        display((x_move_l, x_move_h, y_move_l, y_move_h))
+            if x_lower < 1
+                x_lower = calculated_range[1][1]
+                x_higher = calculated_range[1][2] + x_move*2
+            elseif x_higher >= img_size[1]
+                x_lower = calculated_range[1][1] - x_move*2
+                x_higher = calculated_range[1][2] 
+            end
 
-        x_lower = initial_range[1][1] - x_move_l
-        x_higher = initial_range[1][2] + x_move_h
-        y_lower = initial_range[2][1] - y_move_l
-        y_higher = initial_range[2][2] + y_move_h
-
-        display((x_lower, x_higher, y_lower, y_higher))
-
-        if x_lower <= 0
-            calculated_range = (
-                (x_lower + x_move_l, x_higher + x_move_l),
-                (y_lower, y_higher)
-            )
-        elseif y_lower <= 0
             calculated_range = (
                 (x_lower, x_higher),
-                (y_lower + y_move_l, y_higher + y_move_l)
+                (calculated_range[2][1], calculated_range[2][2])
             )
-        elseif x_higher >= img_size[1]
+            display(calculated_range)
+        end
+
+        if projected_size[2] < minimum_size[2]
+            y_move = Int(ceil(( minimum_size[2] - projected_size[2])/2))
+
+            y_lower = calculated_range[2][1] - y_move
+            y_higher = calculated_range[2][2] + y_move
+
+            if y_lower < 1
+                y_lower = calculated_range[2][1]
+                y_higher = calculated_range[2][2] + y_move*2
+            elseif y_higher >= img_size[2]
+                y_lower = calculated_range[2][1] - y_move*2
+                y_higher = calculated_range[2][2] 
+            end
+
             calculated_range = (
-                (x_lower - x_move_h, x_higher - x_move_h),
+                (calculated_range[1][1], calculated_range[1][2]),
                 (y_lower, y_higher)
             )
-        elseif y_higher >= img_size[2]
-            calculated_range = (
-                (x_lower, x_higher),
-                (y_lower - y_move_h, y_higher - y_move_h)
-            )
-        else
-            calculated_range = (
-                (x_lower, x_higher),
-                (y_lower, y_higher)
-            )
+            display(calculated_range)
         end
 
     elseif projected_size > img_size
@@ -567,10 +580,10 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
     else
         println("$projected_size is greated than $minimum_size")
 
-        x_lower = initial_range[1][1]-border[1]
-        x_higher = initial_range[1][2]+border[1]
-        y_lower = initial_range[2][1]-border[2]
-        y_higher = initial_range[2][2]+border[2]
+        x_lower = calculated_range[1][1]-border[1]
+        x_higher = calculated_range[1][2]+border[1]
+        y_lower = calculated_range[2][1]-border[2]
+        y_higher = calculated_range[2][2]+border[2]
 
         if x_lower > 0 && x_higher < img_size[1] && y_lower > 0 && y_higher < img_size[2]
             calculated_range = (
@@ -585,9 +598,8 @@ function crop(img, initial_range, img_size, minimum_size=(256, 256), border=(20,
         end
     end
 
-    img = @view img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
+    img = img[calculated_range[2][1]:calculated_range[2][2], calculated_range[1][1]:calculated_range[1][2]]
     return img
-
 end
 
 function extract_dimentions(choosen_cluster::Int64, data)
@@ -695,6 +707,7 @@ function processing(quiet::Bool, image_name::String="HAM10000_images\\ISIC_00249
         
     nr_of_clusters = 4
     img_size = [max_x, max_y]
+    display(original_size)
     original_size = (original_size[2], original_size[1])
         
     data = fuzzy_c_means(img, nr_of_clusters, 1.3, true)
@@ -738,6 +751,24 @@ function processing_test()
     end
 end
 
-processing("HAM10000_images\\ISIC_0028245.jpg")
-#processing(true, "HAM10000_images\\ISIC_0028339.jpg")
-# processing_test()
+function process_all()
+    files = readdir("datasets\\HAM10000\\HAM10000_images")
+    display(files)
+
+    for file in files
+        out = processing(true, "HAM10000_images\\$file")
+        save("preprocessed\\$file", out)
+    end
+
+    # for i in 1:100
+    #     out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
+    #     save("preprocessed\\img_$i.jpg", out)
+    #     n+=1
+    # end
+
+end
+
+
+# processing("HAM10000_images\\ISIC_0028245.jpg")
+# # processing(true, "HAM10000_images\\ISIC_0028339.jpg")
+# # processing_test()
