@@ -1,6 +1,6 @@
 
 
-function range_check_smaller(calculated_range, projected_size_value, minimum_size_value)
+function range_check_smaller(calculated_range, projected_size_value, minimum_size_value, img_size)
 
     if projected_size_value < minimum_size_value
         x_move = Int(ceil((minimum_size_value - projected_size_value)/2))
@@ -26,18 +26,14 @@ end
 
 
 return_original_size(img_size) = ((1, img_size[1]), (1, img_size[2]))
-projected_size(initial_range) = (
-    initial_range[1][2]-initial_range[1][1], 
-    initial_range[2][2]-initial_range[2][1]
-)
 
 
 function range_check(calculated_range, projected_size, minimum_size, img_size, border)
 
     if projected_size < minimum_size
         println("$projected_size is smaller than $minimum_size")
-        calculated_range = range_check_smaller(calculated_range, projected_size[1], minimum_size[1])
-        calculated_range = range_check_smaller(calculated_range, projected_size[2], minimum_size[2])
+        calculated_range = range_check_smaller(calculated_range, projected_size[1], minimum_size[1], img_size)
+        calculated_range = range_check_smaller(calculated_range, projected_size[2], minimum_size[2], img_size)
         
         return calculated_range
 
@@ -69,10 +65,16 @@ function crop(img, initial_range, img_size; minimum_size=(256, 256), border=(20,
     if initial_range[1][2] > img_size[1]
         initial_range[1][2] = img_size[1]
     end
+
     if initial_range[2][2] > img_size[2]
         initial_range[2][2] = img_size[2]
     end
-    projected_size = projected_size(initial_range)
+
+    projected_size = (
+        initial_range[1][1]-initial_range[1][2], 
+        initial_range[2][1]-initial_range[2][2]
+    )
+
     calculated_range = range_check(
         initial_range, 
         projected_size, 
