@@ -22,11 +22,13 @@ Possible Solution:
 # Minimum size the image can be cropped to (will be variable later)
 const MINIMUM_SIZE = (256, 256)
 
-function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
+"""
+    img_to_graph(image_name::String)
 
-    """
-    Function transforming image into the matrix of points  
-    """
+Function transforming image into the matrix of points
+"""
+function img_to_graph(image_name::String)
+
     # load and convert to color matrix
     image = load("datasets\\HAM10000\\$image_name")
     cv = channelview(image)
