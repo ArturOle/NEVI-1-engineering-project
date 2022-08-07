@@ -10,12 +10,13 @@ end
 mutable struct Point
     id::Int
     value::Float16
+    core_distance::Float64
     coordinates::Vector{Real}
     connections::Vector{UndirectedPath}
 end
 
-Point(id, value) = Point(id, value, [], [])
-Point(id, value, coordinates) = Point(id, value, coordinates, [])
+Point(id, value) = Point(id, value, 0, [], [])
+Point(id, value, coordinates) = Point(id, value, 0, coordinates, [])
 
 mutable struct Graph
     points::Vector{Point}

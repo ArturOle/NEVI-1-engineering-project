@@ -11,7 +11,7 @@ include("clustering/FCM.jl")
 include("crop.jl")
 
 """ NOTE:
-Current implementation has problems with choosing the densitu for DBSCAN
+Current implementation has problems with choosing the density for DBSCAN
 
 Possible Solution:
     -   HDBSCAN
@@ -148,13 +148,13 @@ function get_image(
     image = load("$directory\\$image_name")
     resized_image = imresize(image, ratio=1/8)
     original_size = size(image)
-    return (resized_image, original_size)
+    return (resized_image, image, original_size)
 end
 
 function resize_cluster_boundries(main_cluster)
 
-    x = [i[2] for i in main_cluster[2]]
-    y = [i[1] for i in main_cluster[2]]
+    x = [i[1] for i in main_cluster[2]]
+    y = [i[2] for i in main_cluster[2]]
 
     cluster_boundries = [findminmax(y), findminmax(x)]
     display(cluster_boundries)
@@ -166,15 +166,7 @@ function resize_cluster_boundries(main_cluster)
     return cluster_boundries
 end
 
-function processing(
-        image_name::String="ISIC_0024943.jpg";
-        directory::String="datasets\\HAM10000",
-        number_of_clusters=4,
-        m=1.3,
-        border=(10,10),
-        plot_engine=gr
-        )
-
+function stage_information(image_name)
     println(
         """
         ############################################################
@@ -182,8 +174,20 @@ function processing(
         ############################################################
         """
     )
+end
+
+function processing(
+        image_name::String="ISIC_0024943.jpg";
+        directory::String="datasets\\HAM10000",
+        number_of_clusters=4,
+        m=1.3,
+        border=(20,20),
+        plot_engine=gr
+        )
+
+    stage_information(image_name)
     plot_engine()
-    (resized_image, original_size) = get_image(image_name, directory)
+    (resized_image, channel_view, original_size) = get_image(image_name, directory)
     (img, img_size) = image_to_graph(resized_image)
         
     data = fuzzy_c_means(img, number_of_clusters, m)
@@ -193,11 +197,11 @@ function processing(
     cluster_size = reverse(db[:, end])
     main_cluster = density_clustering(db, cluster_size)
     cluster_boundries = resize_cluster_boundries(main_cluster)
-    println(img_size)
+    display(cluster_boundries)
     cropped_image = crop(
-        img,
+        channel_view,
         cluster_boundries,
-        img_size,
+        original_size,
         minimum_size=MINIMUM_SIZE,
         border=border
     )
@@ -214,7 +218,7 @@ function processing(
         border=(10,10)
         )
 
-    (resized_image, original_size) = get_image(image_name, directory)
+    (resized_image, original_image, original_size) = get_image(image_name, directory)
     (img, img_size) = image_to_graph(resized_image)
         
     data = fuzzy_c_means(img, number_of_clusters, m, true)
@@ -226,9 +230,9 @@ function processing(
     cluster_boundries = resize_cluster_boundries(main_cluster)
 
     cropped_image = crop(
-        img, 
+        original_image, 
         cluster_boundries, 
-        img_size, 
+        original_size, 
         minimum_size=MINIMUM_SIZE, 
         border=border
     )
@@ -266,5 +270,5 @@ end
 
 
 # processing("HAM10000_images\\ISIC_0028245.jpg")
-processing("ISIC_0028339.jpg")
+processing("ISIC_0028338.jpg")
 # processing_test()
