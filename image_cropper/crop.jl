@@ -1,6 +1,6 @@
 
 
-function range_check_smaller(calculated_range, projected_size_value, minimum_size_value, img_size)
+function range_check_smaller(calculated_range, projected_size, minimum_size, img_size)
 
     if projected_size_value < minimum_size_value
         x_move = Int(ceil((minimum_size_value - projected_size_value)/2))
@@ -20,6 +20,30 @@ function range_check_smaller(calculated_range, projected_size_value, minimum_siz
             (x_lower, x_higher),
             (calculated_range[2][1], calculated_range[2][2])
         )
+
+    end
+
+    if projected_size[2] < minimum_size[2]
+        y_move = Int(ceil(( minimum_size[2] - projected_size[2])/2))
+
+        y_lower = calculated_range[2][1] - y_move
+        y_higher = calculated_range[2][2] + y_move
+
+        if y_lower < 1
+            y_lower = calculated_range[2][1]
+            y_higher = calculated_range[2][2] + y_move*2
+        elseif y_higher >= img_size[2]
+            y_lower = calculated_range[2][1] - y_move*2
+            y_higher = calculated_range[2][2] 
+        end
+
+        calculated_range = (
+            (calculated_range[1][1], calculated_range[1][2]),
+            (y_lower, y_higher)
+        )
+
+    end
+
         return calculated_range
     end
 end
