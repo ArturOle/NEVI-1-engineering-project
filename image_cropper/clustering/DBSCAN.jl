@@ -81,7 +81,7 @@ function DBSCAN(data, eps, min_cluster_size)
 end
 
 
-function density_clustering(db, img_size; eps=6.2, cluster_size=60)
+function density_clustering(db, img_size; eps=6.2, cluster_size=30)
 
     (clustered, cluster_counter) = DBSCAN(db, eps, cluster_size)
     mid = middle(img_size)
@@ -130,63 +130,3 @@ function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
  
     return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
 end
-
-# data = Matrix{Int64}(undef, 300, 2)
-
-
-# for i=1:100
-#     data[i, 1] = Int(floor(rand(Normal(1 ,40))))
-#     data[i, 2] = Int(floor(rand(Normal(1 ,40))))
-
-# end
-# for i=100:200
-#     data[i, 1] = Int(floor(rand(Normal(150 ,10))))
-#     data[i, 2] = Int(floor(rand(Normal(15 ,10))))
-
-# end
-# for i=200:300
-#     data[i, 1] = Int(floor(rand(Normal(300 ,15))))
-#     data[i, 2] = Int(floor(rand(Normal(300, 5))))
-
-# end
-
-# @time (clustered, cluster_counter) = DBSCAN(data', 28, 3)
-
-# scatter(legend=true)
-# for i in -1:cluster_counter 
-#     cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-#     scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
-# end
-# display(current())
-
-# (clustered, cluster_counter) = DBSCAN(data', 6.2, 20)
-
-# scatter(legend=true)
-# for i in -1:cluster_counter 
-#     cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-#     scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
-# end
-# display(current())
-
-# (clustered, cluster_counter) = DBSCAN(data', 6.2, 40)
-
-# scatter(legend=true)
-# for i in -1:cluster_counter 
-#     cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-#     scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
-# end
-# display(current())
-
-# (clustered, cluster_counter) = DBSCAN(data', 6.2, 80)
-
-# scatter(legend=true)
-# for i in -1:cluster_counter 
-#     cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
-#     scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
-# end
-# display(current())
-
-
-# scatter(data[:])
-
-

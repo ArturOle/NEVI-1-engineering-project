@@ -22,37 +22,6 @@ Possible Solution:
 # Minimum size the image can be cropped to (will be variable later)
 const MINIMUM_SIZE = (256, 256)
 
-"""
-    img_to_graph(image_name::String)
-
-Function transforming image into the matrix of points
-"""
-function img_to_graph(image_name::String)
-
-    # load and convert to color matrix
-    image = load("datasets\\HAM10000\\$image_name")
-    cv = channelview(image)
-    s = size(cv)
-    max_x = s[3]
-    max_y = s[2]
-
-    # transform to data in a form of vectors of every dimention
-    img = zeros(Float64, 5, max_x*max_y)
-
-    for j in 1:max_y
-        for i in 1:max_x
-            img[1, (j-1)*max_x + i] = cv[1, j, i]
-            img[2, (j-1)*max_x + i] = cv[2, j, i]
-            img[3, (j-1)*max_x + i] = cv[3, j, i]
-            img[4, (j-1)*max_x + i] = i
-            img[5, (j-1)*max_x + i] = j
-
-        end
-    end
-
-    return img
-end
-
 
 function middle_cluster(number_of_clusters, img_size, data)
 
@@ -117,6 +86,11 @@ function extract_dimentions(choosen_cluster::Int64, data)
     return hcat(cluster_vector_x, cluster_vector_y)'
 end
 
+"""
+    img_to_graph(image)
+
+Function transforming image into the matrix of points
+"""
 function image_to_graph(image)
 
     cv = channelview(image)
@@ -153,11 +127,10 @@ end
 
 function resize_cluster_boundries(main_cluster)
 
-    x = [i[1] for i in main_cluster[2]]
-    y = [i[2] for i in main_cluster[2]]
+    x = [i[2] for i in main_cluster[2]]
+    y = [i[1] for i in main_cluster[2]]
 
     cluster_boundries = [findminmax(y), findminmax(x)]
-    display(cluster_boundries)
 
     for (i, boundry) in enumerate(cluster_boundries)
         cluster_boundries[i] = 8*boundry
@@ -197,7 +170,7 @@ function processing(
     cluster_size = reverse(db[:, end])
     main_cluster = density_clustering(db, cluster_size)
     cluster_boundries = resize_cluster_boundries(main_cluster)
-    display(cluster_boundries)
+
     cropped_image = crop(
         channel_view,
         cluster_boundries,
@@ -270,5 +243,5 @@ end
 
 
 # processing("HAM10000_images\\ISIC_0028245.jpg")
-processing("ISIC_0028338.jpg")
+processing("ISIC_0028328.jpg")
 # processing_test()
