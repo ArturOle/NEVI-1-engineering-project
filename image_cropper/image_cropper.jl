@@ -1,7 +1,8 @@
 
 using Plots
 using Statistics
-
+using Logging
+using Distributed
 using Colors
 using Images
 using FileIO
@@ -209,7 +210,7 @@ function processing(
         minimum_size=MINIMUM_SIZE, 
         border=border
     )
-    return cropped_image
+    return imresize(cropped_image, MINIMUM_SIZE)
 end
 
 function processing_test()
@@ -224,24 +225,34 @@ function processing_test()
 end
 
 function process_all()
+    io = open("failed.log", "a+")
+    logger = Base.SimpleLogger(io)
+    Base.with_logger(logger) do
+        @info "Starting image processing"
+        flush(io)
+        files = readdir("datasets\\HAM10000")
+        display(files)
+        failed_counter = 0
+        Threads.@threads for file in files
+            try
+                out = processing(true, file)
+                save("preprocessed\\$file", out)
+                flush(io)
+            catch ArgumentError
+                @error "Image $file failed to be processed"
+                failed_counter += 1 
+                flush(io)
+            end
 
-    files = readdir("datasets\\HAM10000\\HAM10000_images")
-    display(files)
+        end
 
-    for file in files
-        out = processing(true, image_name="ISIC_00$n.jpg")
-        save("preprocessed\\$file", out)
+        @info "Number of failed image processes: $failed_counter"
+        flush(io)
     end
-
-    # for i in 1:100
-    #     out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
-    #     save("preprocessed\\img_$i.jpg", out)
-    #     n+=1
-    # end
-
+    close(io)
 end
 
 
 # processing("HAM10000_images\\ISIC_0028245.jpg")
-processing("ISIC_0028328.jpg")
+# processing("ISIC_0028328.jpg")
 # processing_test()

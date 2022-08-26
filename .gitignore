@@ -7,9 +7,13 @@
 /preprocessed
 /test_img
 /venv
+/.vscode
 
 *.png
 *.jpg
 *.jpeg
 *.toml
+*.log
+
+mymodel*
 
