@@ -2,7 +2,6 @@
 import os
 
 # FastAPI
-from urllib.request import Request
 from fastapi import FastAPI, UploadFile
 from typing import Optional
 from pydantic import BaseModel
@@ -10,32 +9,34 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import uuid
 
-# Firebasews
+# Firebase
 from firebase_admin import credentials, initialize_app
 from google.cloud import storage
 
 
 class MetaData(BaseModel):
-    data_1: str   = None
+    data_1: str = None
     size_x: float = None
     size_y: float = None
 
 
 # Firebase initialization
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="moledetector.json"  
-cred = credentials.Certificate("moledetector.json")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
+cred = credentials.Certificate("nevi.json")
 fire = initialize_app(cred)
 client = storage.Client()
-bucket = client.get_bucket('moledetector.appspot.com')
+bucket = client.get_bucket('gs://nevi-59237.appspot.com')
 client.list_buckets()
 
 # FastAPI initialization
 app = FastAPI(debug=False)
 templates = Jinja2Templates(directory="templates")
 
+
 def save_file(filename, data):
     with open(filename, 'wb') as f:
         f.write(data)
+
 
 @app.get("/", response_class=HTMLResponse)
 async def welcome():
@@ -51,23 +52,26 @@ async def welcome():
         </html>   
     """
 
+
 @app.get("/firebase/")
 async def firebase_info():
-    buckets=[]
+    buckets = []
     for bucket in client.list_buckets():
         buckets.append(bucket)
     return str(buckets)
 
+
 @app.post("/firebase/post")
 async def firebase_post(file: Optional[UploadFile] = None):
-    imageBlob = bucket.blob("")
+    image_blob = bucket.blob("")
     file.filename = f"{uuid.uuid4()}.jpg"
-    imageBlob = bucket.blob("images/"+file.filename)
+    image_blob = bucket.blob("images/"+file.filename)
     contents = await file.read()
     save_file(file.filename, contents)
-    imageBlob.upload_from_filename(file.filename) # Upload your image
+    image_blob.upload_from_filename(file.filename)  # Upload your image
     os.remove(file.filename)
     return {"filename": file.filename}
+
 
 @app.get("/img_in_db/", response_class=HTMLResponse)
 async def show_files():
@@ -81,6 +85,7 @@ async def show_files():
         </body>
         </html>   
     """.format(files="\n".join(["a", "b"]))
+
 
 @app.post("/images/")
 async def create_upload_file(file: Optional[UploadFile] = None):
