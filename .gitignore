@@ -8,7 +8,7 @@
 /test_img
 /venv
 /.vscode
-
+/model
 *.png
 *.jpg
 *.jpeg

@@ -219,7 +219,7 @@ function processing_test()
 
     for i in 1:100
         out = processing(true, image_name="ISIC_00$n.jpg")
-        save("preprocessed\\img_$i.jpg", out)
+        save("preprocessed\\img_$i@preprocessed.jpg", out)
         n+=1
     end
 end
@@ -254,5 +254,6 @@ end
 
 
 # processing("HAM10000_images\\ISIC_0028245.jpg")
-# processing("ISIC_0028328.jpg")
+# processing(true, "ISIC_0028328.jpg")
 # processing_test()
+process_all()

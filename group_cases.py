@@ -16,8 +16,8 @@ class ManageMetadata:
     of deep convolutional neural networks.
     """
     HAM_DATABASE_METADATA_DIR = "datasets\\HAM10000_metadata.csv"
-    PREPROCESSED_IMAGES_DIR = "preprocessed"
-    DESTINATION_TYPE_DIRECORY = "grouped_images_by_type"
+    PREPROCESSED_IMAGES_DIR = "grouped_images_by_type\\secret_test_folder"
+    DESTINATION_TYPE_DIRECORY = "grouped_images_by_type\\secret_test_folder"
     DESTINATION_SEVERITY_DIRECORY = "grouped_images_by_severity"
 
     def __init__(self):
@@ -51,26 +51,29 @@ class ManageMetadata:
     def group_image(self, image_id: str):
         diagnosis = self.extract_diagnosis(image_id)
         logging.info("Diagnosis for image {}: {}".format(image_id, diagnosis))
-        severity = "malignant" if self.mutation_types[diagnosis] else "benign"
+        # severity = "malignant" if self.mutation_types[diagnosis] else "benign"
         type_destination_path = extend_path(self.DESTINATION_TYPE_DIRECORY, diagnosis)
 
         if not os.path.isdir(type_destination_path):
             os.mkdir(type_destination_path)
 
-        os.replace(
-            extend_path(self.PREPROCESSED_IMAGES_DIR, image_id),
-            extend_path(type_destination_path, image_id)
-        )
-
-        severity_destination_path = extend_path(self.DESTINATION_SEVERITY_DIRECORY, severity)
-
-        if not os.path.isdir(severity_destination_path):
-            os.mkdir(severity_destination_path)
+        image_id_new = image_id.strip(".jpg")
+        image_id_new = ''.join([image_id_new, "_preprocessed.jpg"])
 
         copy(
-            extend_path(type_destination_path, image_id),
-            severity_destination_path  
+            extend_path(self.PREPROCESSED_IMAGES_DIR, image_id),
+            extend_path(type_destination_path, image_id_new)
         )
+
+        # severity_destination_path = extend_path(self.DESTINATION_SEVERITY_DIRECORY, severity)
+
+        # if not os.path.isdir(severity_destination_path):
+        #     os.mkdir(severity_destination_path)
+
+        # copy(
+        #     extend_path(type_destination_path, image_id),
+        #     severity_destination_path
+        # )
 
         logging.info("Image {} successfully transfered to type and severity folders".format(image_id))
 
@@ -83,4 +86,4 @@ def extend_path(path, *extensions):
 
 if __name__ == "__main__":
     mm = ManageMetadata()
-    mm.group_directory("preprocessed")
+    mm.group_directory("grouped_images_by_type\\secret_test_folder")

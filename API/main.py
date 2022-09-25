@@ -15,7 +15,7 @@ from firebase_admin import credentials, initialize_app
 from google.cloud import storage
 
 
-class MetaData(BaseModel):
+class ImageMetaData(BaseModel):
     data_1: str   = None
     size_x: float = None
     size_y: float = None
