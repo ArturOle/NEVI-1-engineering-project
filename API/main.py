@@ -25,7 +25,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
 cred = credentials.Certificate("nevi.json")
 fire = initialize_app(cred)
 client = storage.Client()
-bucket = client.get_bucket('gs://nevi-59237.appspot.com')
+bucket = client.get_bucket('nevi-59237.appspot.com')
 client.list_buckets()
 
 # FastAPI initialization
@@ -44,12 +44,11 @@ async def welcome():
         <html>
         <head>
             <title>Item Details</title>
-            <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
         </head>
         <body>
             <h1>Item ID: </h1>
         </body>
-        </html>   
+        </html>
     """
 
 
@@ -83,7 +82,7 @@ async def show_files():
         <body>
             <h1>Files: {files}</h1>
         </body>
-        </html>   
+        </html>
     """.format(files="\n".join(["a", "b"]))
 
 
@@ -91,4 +90,3 @@ async def show_files():
 async def create_upload_file(file: Optional[UploadFile] = None):
     # db.append(file.filename)
     return {"filename": file.filename}
-
