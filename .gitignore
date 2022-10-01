@@ -1,8 +1,9 @@
 /datasets
 /cancer
 /clustering
+/API/__pycache__
 /__pycache__
-/API
+
 /inż
 /preprocessed
 /test_img
@@ -15,3 +16,5 @@
 *.jpeg
 *.toml
 *.log
+*.json
+*.txt
