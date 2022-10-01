@@ -17,7 +17,7 @@ client = storage.Client()
 bucket = client.get_bucket('nevi-59237.appspot.com')
 client.list_buckets()
 
-app = Manager()
+app = Manager(fire)
 app.listen()
 
 
