@@ -11,6 +11,7 @@ from firebase_admin import db
 # Tensorflow
 from predictor import Predictor
 
+
 class Manager(FastAPI):
     _path = "/posts"
     _url = "https://nevi-59237-default-rtdb.europe-west1.firebasedatabase.app"
@@ -27,7 +28,7 @@ class Manager(FastAPI):
         self.ref = None
 
     def listen(self):
-        self._ref = db.reference(
+        self.ref = db.reference(
             self._path,
             self._url
         )
@@ -46,3 +47,4 @@ class Manager(FastAPI):
             if image:
                 image = requests.get(image)
                 prediction = Predictor(r"D:\Projects\thesis\model\experimental_model_severity_full90prc_S5.h5").predict(image)
+                db.reference(''.join([event.path, "is_diagnose_ready"])).set(prediction)
