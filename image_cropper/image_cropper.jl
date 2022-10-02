@@ -1,17 +1,18 @@
 
 using Plots
 using Statistics
-
+using Logging
+using Distributed
 using Colors
 using Images
 using FileIO
 
-include("DBSCAN.jl")
-include("FCM.jl")
+include("clustering/DBSCAN.jl")
+include("clustering/FCM.jl")
 include("crop.jl")
 
 """ NOTE:
-Current implementation has problems with choosing the densitu for DBSCAN
+Current implementation has problems with choosing the density for DBSCAN
 
 Possible Solution:
     -   HDBSCAN
@@ -19,44 +20,15 @@ Possible Solution:
 
 """
 
-# Minimum size the image can be cropped to 
+# Minimum size the image can be cropped to (will be variable later)
 const MINIMUM_SIZE = (256, 256)
-
-function img_to_graph(image_name::String="HAM10000_images\\ISIC_0024944.jpg")
-
-    """
-    Function transforming image into the matrix of points  
-    """
-    # load and convert to color matrix
-    image = load("datasets\\HAM10000\\$image_name")
-    cv = channelview(image)
-    s = size(cv)
-    max_x = s[3]
-    max_y = s[2]
-
-    # transform to data in a form of vectors of every dimention
-    img = zeros(Float64, 5, max_x*max_y)
-
-    for j in 1:max_y
-        for i in 1:max_x
-            img[1, (j-1)*max_x + i] = cv[1, j, i]
-            img[2, (j-1)*max_x + i] = cv[2, j, i]
-            img[3, (j-1)*max_x + i] = cv[3, j, i]
-            img[4, (j-1)*max_x + i] = i
-            img[5, (j-1)*max_x + i] = j
-
-        end
-    end
-
-    return img
-end
 
 
 function middle_cluster(number_of_clusters, img_size, data)
 
     mid = middle(img_size)
     decision_dictionary = Dict{Int, Vector{Float64}}(
-        [[x,[]] for x in 1:number_of_clusters]
+        [(x,[]) for x in 1:number_of_clusters]
     )
 
     for point in data[1]
@@ -115,14 +87,20 @@ function extract_dimentions(choosen_cluster::Int64, data)
     return hcat(cluster_vector_x, cluster_vector_y)'
 end
 
+"""
+    img_to_graph(image)
+
+Function transforming image into the matrix of points
+"""
 function image_to_graph(image)
 
     cv = channelview(image)
-    img = zeros(Float64, 5, max_x*max_y)
     s = size(cv)
 
     max_x = s[3]
     max_y = s[2]
+
+    img = zeros(Float64, 5, max_x*max_y)
 
     for j in 1:max_y
         for i in 1:max_x
@@ -145,7 +123,7 @@ function get_image(
     image = load("$directory\\$image_name")
     resized_image = imresize(image, ratio=1/8)
     original_size = size(image)
-    return (resized_image, original_size)
+    return (resized_image, image, original_size)
 end
 
 function resize_cluster_boundries(main_cluster)
@@ -154,22 +132,15 @@ function resize_cluster_boundries(main_cluster)
     y = [i[1] for i in main_cluster[2]]
 
     cluster_boundries = [findminmax(y), findminmax(x)]
-    display(cluster_boundries)
 
-    for i in 1:length(cluster_boundries)
-        cluster_boundries[i] = 8*cluster_boundries[i]
+    for (i, boundry) in enumerate(cluster_boundries)
+        cluster_boundries[i] = 8*boundry
     end
+
+    return cluster_boundries
 end
 
-function processing(
-        ;image_name::String="ISIC_0024943.jpg",
-        directory::String="datasets\\HAM10000\\HAM10000_images",
-        number_of_clusters=4,
-        m=1.3,
-        border=(10,10),
-        plot_engine=gr
-        )
-
+function stage_information(image_name)
     println(
         """
         ############################################################
@@ -177,8 +148,20 @@ function processing(
         ############################################################
         """
     )
+end
+
+function processing(
+        image_name::String="ISIC_0024943.jpg";
+        directory::String="datasets\\HAM10000",
+        number_of_clusters=4,
+        m=1.3,
+        border=(20,20),
+        plot_engine=gr
+        )
+
+    stage_information(image_name)
     plot_engine()
-    (resized_image, original_size) = get_image(image_name, directory)
+    (resized_image, channel_view, original_size) = get_image(image_name, directory)
     (img, img_size) = image_to_graph(resized_image)
         
     data = fuzzy_c_means(img, number_of_clusters, m)
@@ -190,25 +173,26 @@ function processing(
     cluster_boundries = resize_cluster_boundries(main_cluster)
 
     cropped_image = crop(
-        image,
+        channel_view,
         cluster_boundries,
         original_size,
         minimum_size=MINIMUM_SIZE,
         border=border
     )
     return cropped_image
+    display(cropped_image)
 end
 
 function processing(
-        quiet::Bool; 
-        image_name::String="ISIC_0024943.jpg", 
-        directory::String="datasets\\HAM10000\\HAM10000_images", 
+        quiet::Bool,
+        image_name::String="ISIC_0024943.jpg";
+        directory::String="datasets\\HAM10000", 
         number_of_clusters=4, 
         m=1.3, 
         border=(10,10)
         )
 
-    (resized_image, original_size) = get_image(image_name, directory)
+    (resized_image, original_image, original_size) = get_image(image_name, directory)
     (img, img_size) = image_to_graph(resized_image)
         
     data = fuzzy_c_means(img, number_of_clusters, m, true)
@@ -220,13 +204,13 @@ function processing(
     cluster_boundries = resize_cluster_boundries(main_cluster)
 
     cropped_image = crop(
-        image, 
+        original_image, 
         cluster_boundries, 
         original_size, 
         minimum_size=MINIMUM_SIZE, 
         border=border
     )
-    return cropped_image
+    return imresize(cropped_image, MINIMUM_SIZE)
 end
 
 function processing_test()
@@ -235,30 +219,41 @@ function processing_test()
 
     for i in 1:100
         out = processing(true, image_name="ISIC_00$n.jpg")
-        save("preprocessed\\img_$i.jpg", out)
+        save("preprocessed\\img_$i@preprocessed.jpg", out)
         n+=1
     end
 end
 
 function process_all()
+    io = open("failed.log", "a+")
+    logger = Base.SimpleLogger(io)
+    Base.with_logger(logger) do
+        @info "Starting image processing"
+        flush(io)
+        files = readdir("datasets\\HAM10000")
+        display(files)
+        failed_counter = 0
+        Threads.@threads for file in files
+            try
+                out = processing(true, file)
+                save("preprocessed\\$file", out)
+                flush(io)
+            catch ArgumentError
+                @error "Image $file failed to be processed"
+                failed_counter += 1 
+                flush(io)
+            end
 
-    files = readdir("datasets\\HAM10000\\HAM10000_images")
-    display(files)
+        end
 
-    for file in files
-        out = processing(true, image_name="ISIC_00$n.jpg")
-        save("preprocessed\\$file", out)
+        @info "Number of failed image processes: $failed_counter"
+        flush(io)
     end
-
-    # for i in 1:100
-    #     out = processing(true, "HAM10000_images\\ISIC_00$n.jpg")
-    #     save("preprocessed\\img_$i.jpg", out)
-    #     n+=1
-    # end
-
+    close(io)
 end
 
 
 # processing("HAM10000_images\\ISIC_0028245.jpg")
-# # processing(true, "HAM10000_images\\ISIC_0028339.jpg")
-# # processing_test()
+# processing(true, "ISIC_0028328.jpg")
+# processing_test()
+process_all()
