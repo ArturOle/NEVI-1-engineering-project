@@ -13,7 +13,7 @@ class Predictor:
         np_image = np.array(image).astype('float32')/255
         np_image = transform.resize(np_image, (256, 256, 3))
         np_image = np.expand_dims(np_image, axis=0)
-        result = list(self.model.predict(np_image)[0])
+        result = self.model.predict(np_image)[0]
         print(result)
         return self.map_results(result)
 
@@ -27,7 +27,7 @@ class Predictor:
             5: "Melanocytic nevi",
             6: "Vascular lesions"
         }
-        return map_results[results.index(max(results))]
+        return map_results[np.array([np.argmax(x) for x in results])]
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ class Manager(FastAPI):
         self.ref = None
 
     def listen(self):
-        self.ref = db.reference(
+        self._ref = db.reference(
             self._path,
             self._url
         )
