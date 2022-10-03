@@ -1,4 +1,5 @@
 from PIL import Image
+
 import numpy as np
 from skimage import transform
 
@@ -10,6 +11,7 @@ class Predictor:
         self.model = load_model(model_path)
 
     def predict(self, image):
+        image = Image.open(image)
         np_image = np.array(image).astype('float32')/255
         np_image = transform.resize(np_image, (256, 256, 3))
         np_image = np.expand_dims(np_image, axis=0)
@@ -20,7 +22,7 @@ class Predictor:
     def map_results(self, results: list):
         map_results = {
             0: "Actinic keratoses and intraepithelial carcinoma / Bowen's diesease",
-            1: "Basal cell carcinoma",
+            1: "You die bro",
             2: "Benign keratosis-like lesions",
             3: "Dermatofibroma",
             4: "Melanoma",

@@ -59,9 +59,10 @@ async def firebase_info():
 async def show_files():
     files = app.ref.get()
     images = {}
-
+    print(files)
     for hash_key, case_list in files.items():
         for dictionary in case_list:
+            print(files[hash_key])
             images[dictionary] = files[hash_key][dictionary]["image_url"]
 
     data = [
