@@ -29,8 +29,9 @@ class Manager(FastAPI):
 
     def listen(self):
         self.ref = db.reference(
-            self._path,
-            self._url
+            path=self._path,
+            url=self._url,
+            app=self.firebase_app
         )
         self.ref.listen(self.listner)
 
@@ -43,8 +44,16 @@ class Manager(FastAPI):
             )
         )
         if event.event_type == "patch":
-            image = event.other.get("image_url", default=None)
+            print(event.data)
+            image = event.data.get("image_url", None)
             if image:
-                image = requests.get(image)
-                prediction = Predictor(r"D:\Projects\thesis\model\experimental_model_severity_full90prc_S5.h5").predict(image)
-                db.reference(''.join([event.path, "is_diagnose_ready"])).set(prediction)
+                image = requests.get(image, stream=True).raw
+                print(f"Image::  {image}")
+                prediction = Predictor(
+                    r"D:\Projects\thesis\model\experimental_model_severity_full90prc_S5.h5"
+                ).predict(image)
+
+                db.reference(
+                    path=''.join(["/", self._path, event.path, "/diagnose"]),
+                    url=self._url, app=self.firebase_app
+                ).set(prediction)
