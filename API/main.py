@@ -43,18 +43,6 @@ async def firebase_info():
     return str(buckets)
 
 
-# @app.post("/firebase/post")
-# async def firebase_post(file: Optional[UploadFile] = None):
-#     image_blob = bucket.blob("")
-#     file.filename = f"{uuid.uuid4()}.jpg"
-#     image_blob = bucket.blob("images/"+file.filename)
-#     contents = await file.read()
-#     save_file(file.filename, contents)
-#     image_blob.upload_from_filename(file.filename)  # Upload your image
-#     os.remove(file.filename)
-#     return {"filename": file.filename}
-
-
 @app.get("/img_in_db/", response_class=HTMLResponse)
 async def show_files():
     files = app.ref.get()
