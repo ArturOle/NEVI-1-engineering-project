@@ -4,28 +4,55 @@ import requests
 
 # FastAPI
 from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 # Firebase
-from firebase_admin import db
+from firebase_admin import (
+    db, 
+    credentials, 
+    initialize_app
+)
 
 # Tensorflow
 from predictor import Predictor
 
 
 class Manager(FastAPI):
+    # need to be moved to env varaibles V
     _path = "/posts"
     _url = "https://nevi-59237-default-rtdb.europe-west1.firebasedatabase.app"
-    _bucket = None
+    _cert = "nevi.json"
+    _firebase_app = None
+    # ^
 
-    def __init__(self, firebase) -> None:
+    _bucket = None
+    _templates = None
+
+    def __init__(self) -> None:
         super().__init__(debug=False)
+        cred = credentials.Certificate(self._cert)
         logging.basicConfig(
             format='%(levelname)s:%(message)s',
             level=logging.INFO
         )
-        self.firebase_app = firebase
+        self.firebase_app = None
+        self.mount("/static", StaticFiles(directory="static"), name="static")
         self._log = logging.getLogger(__name__)
         self.ref = None
+
+    @property
+    def firebase_app(self):
+        if not self.firebase_app:
+            cred = credentials.Certificate(self._cert)
+            self._firebase_app = initialize_app(cred)
+        return self._firebase_app
+
+    @property
+    def templates(self):
+        if not self._templates:
+            self._templates = Jinja2Templates(directory="templates")
+        return self._templates
 
     def listen(self):
         self.ref = db.reference(
@@ -44,16 +71,16 @@ class Manager(FastAPI):
             )
         )
         if event.event_type == "patch":
-            print(event.data)
             image = event.data.get("image_url", None)
             if image:
                 image = requests.get(image, stream=True).raw
-                print(f"Image::  {image}")
                 prediction = Predictor(
                     r"D:\Projects\thesis\model\experimental_model_severity_full90prc_S5.h5"
                 ).predict(image)
-
                 db.reference(
                     path=''.join(["/", self._path, event.path, "/diagnose"]),
                     url=self._url, app=self.firebase_app
                 ).set(prediction)
+
+    def home(self):
+        return self.templates.TemplateResponse("home.html")

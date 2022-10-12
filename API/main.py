@@ -2,27 +2,17 @@ import os
 
 from manager import Manager
 
-from typing import Optional
 from fastapi.responses import HTMLResponse
-from fastapi import UploadFile
-
-from firebase_admin import credentials, initialize_app
-from google.cloud import storage
 
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
-cred = credentials.Certificate("nevi.json")
-fire = initialize_app(cred)
-client = storage.Client()
-bucket = client.get_bucket('nevi-59237.appspot.com')
-client.list_buckets()
 
-app = Manager(fire)
+app = Manager()
 app.listen()
 
 
 @app.get("/", response_class=HTMLResponse)
-async def welcome():
+async def home():
     return """
         <html>
         <head>
@@ -33,14 +23,6 @@ async def welcome():
         </body>
         </html>
     """
-
-
-@app.get("/firebase/")
-async def firebase_info():
-    buckets = []
-    for bucket in client.list_buckets():
-        buckets.append(bucket)
-    return str(buckets)
 
 
 @app.get("/img_in_db/", response_class=HTMLResponse)
@@ -70,8 +52,3 @@ async def show_files():
         </html>
     """.format('\n'.join(data))
 
-
-@app.post("/images/")
-async def create_upload_file(file: Optional[UploadFile] = None):
-    # db.append(file.filename)
-    return {"filename": file.filename}

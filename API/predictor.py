@@ -33,7 +33,6 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    # with open(r"D:\Projects\thesis\grouped_images_by_severity\benign\ISIC_0024306.jpg", "r") as f:
     img = Image.open(r"D:\Projects\thesis\secret_test_folder\mel\ISIC_0034243.jpg")
     pred = Predictor(r"D:\Projects\thesis\model\NEVI_0.2.0.h5")
     pred = pred.predict(img)
