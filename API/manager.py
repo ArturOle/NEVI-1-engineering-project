@@ -5,12 +5,11 @@ import requests
 # FastAPI
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 
 # Firebase
 from firebase_admin import (
-    db, 
-    credentials, 
+    db,
+    credentials,
     initialize_app
 )
 
@@ -31,19 +30,16 @@ class Manager(FastAPI):
 
     def __init__(self) -> None:
         super().__init__(debug=False)
-        cred = credentials.Certificate(self._cert)
         logging.basicConfig(
             format='%(levelname)s:%(message)s',
             level=logging.INFO
         )
-        self.firebase_app = None
-        self.mount("/static", StaticFiles(directory="static"), name="static")
         self._log = logging.getLogger(__name__)
         self.ref = None
 
     @property
     def firebase_app(self):
-        if not self.firebase_app:
+        if not self._firebase_app:
             cred = credentials.Certificate(self._cert)
             self._firebase_app = initialize_app(cred)
         return self._firebase_app
