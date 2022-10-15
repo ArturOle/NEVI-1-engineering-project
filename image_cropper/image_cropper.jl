@@ -151,8 +151,8 @@ function stage_information(image_name)
 end
 
 function processing(
-        image_name::String="ISIC_0024943.jpg";
-        directory::String="datasets\\HAM10000",
+        image_name::String="ISIC_0024943.jpg",
+        directory::String="datasets\\HAM10000";
         number_of_clusters=4,
         m=1.3,
         border=(20,20),
@@ -180,15 +180,14 @@ function processing(
         border=border
     )
     return cropped_image
-    display(cropped_image)
 end
 
 function processing(
         quiet::Bool,
-        image_name::String="ISIC_0024943.jpg";
-        directory::String="datasets\\HAM10000", 
-        number_of_clusters=4, 
-        m=1.3, 
+        image_name::String,
+        directory::String;
+        number_of_clusters=4,
+        m=1.3,
         border=(10,10)
         )
 
@@ -243,7 +242,6 @@ function process_all()
                 failed_counter += 1 
                 flush(io)
             end
-
         end
 
         @info "Number of failed image processes: $failed_counter"
@@ -253,7 +251,7 @@ function process_all()
 end
 
 
-# processing("HAM10000_images\\ISIC_0028245.jpg")
-# processing(true, "ISIC_0028328.jpg")
+# processing("ISIC_0024326.jpg")
+# processing(true, "ISIC_0028329.jpg", "datasets\\HAM10000")
 # processing_test()
-process_all()
+# process_all()

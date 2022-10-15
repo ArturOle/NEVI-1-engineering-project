@@ -1,11 +1,8 @@
-import os
-
 from manager import Manager
-
 from fastapi.responses import HTMLResponse
+from os import environ
 
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
+environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
 
 app = Manager()
 app.listen()
@@ -51,4 +48,3 @@ async def show_files():
         </body>
         </html>
     """.format('\n'.join(data))
-
