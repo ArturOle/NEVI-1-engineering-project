@@ -11,9 +11,9 @@ class Predictor:
         self.model = load_model(model_path)
 
     def predict(self, image):
-        with open("image1.jpg", 'wb') as f:
-            shutil.copyfileobj(image, f)
-        image = Image.open(image)
+        # with open("image1.jpg", 'wb') as f:
+        #     shutil.copyfileobj(image, f)
+        image = Image.open(image.raw)
         np_image = np.array(image).astype(float)
         np_image = transform.resize(np_image, (256, 256, 3))
         np_image = np.expand_dims(np_image, axis=0)

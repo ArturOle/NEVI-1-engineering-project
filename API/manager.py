@@ -69,9 +69,10 @@ class Manager(FastAPI):
         if event.event_type == "patch":
             image = event.data.get("image_url", None)
             if image:
-                image = requests.get(image, stream=True).raw
+                image = requests.get(image, stream=True)
+                # print(image)
                 prediction = Predictor(
-                    r"D:\Projects\thesis\model\NEVI_0.2.0.h5"
+                    r"D:\Projects\Thesis\thesis\model\NEVI_0.2.0.h5"
                 ).predict(image)
                 db.reference(
                     path=''.join(["/", self._path, event.path, "/diagnose"]),
