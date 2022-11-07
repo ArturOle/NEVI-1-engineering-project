@@ -253,7 +253,7 @@ function process_all()
 end
 
 
-processing("HAM10000_images\\ISIC_0028245.jpg")
+processing("ISIC_0028245.jpg")
 # processing(true, "ISIC_0028328.jpg")
 # processing_test()
 # process_all()
