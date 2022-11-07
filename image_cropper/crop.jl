@@ -48,23 +48,30 @@ end
 return_original_size(img_size) = ((1, img_size[2]-1), (1, img_size[1]-1))
 
 
-function range_check(calculated_range, projected_size, minimum_size, img_size, border)
-
+function range_check(
+    calculated_range,
+    projected_size,
+    minimum_size,
+    img_size,
+    border
+        )
     if projected_size < minimum_size
-        println("$projected_size is smaller than $minimum_size")
-
-        return range_check_smaller(calculated_range, projected_size, minimum_size, img_size)
-
+        return range_check_smaller(
+            calculated_range,
+            projected_size,
+            minimum_size,
+            img_size
+        )
     elseif projected_size > img_size
-        println("$projected_size is greater than $img_size")
-
-        return return_original_size(img_size)
-        
+        return return_original_size(
+            img_size
+        )
     else
-        println("$projected_size is greated than $minimum_size")
-        
-        return add_border(calculated_range, border, img_size)
-
+        return add_border(
+            calculated_range,
+            border,
+            img_size
+        )
     end
 end
 
