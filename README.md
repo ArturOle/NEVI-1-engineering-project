@@ -83,7 +83,9 @@ Bowen's diesease
 - Might feel itchy (but not all the time)
 
 
-### Algorithmic pipline
+## Algorithmic pipline
+
+Using unsupervised machine learning techniques algorithm is extracting the area of intrest to meaningfully support the neural network by decreasing dimentions of an image without losing crutial patterns and inforamtion embedded into the original image.
 
 Step 1: 
 Image input
