@@ -87,16 +87,16 @@ Bowen's diesease
 
 Step 1: 
 Image input
-<img src="./readme_resources/original.png">
+<img src="./readme_resources/original.png" style="margin: auto">
 
 Step 2: 
 Color clustering done with custom implementation of Fuzzy C-Means
-<img src="./readme_resources/color_clustering.svg">
+<img src="./readme_resources/color_clustering.svg" style="margin: auto">
 
 Step 3:
 Distance clustering done with custom implementation of Density-Based Spatial Clustering for Application with Noise
-<img src="./readme_resources/distance_clustering.svg">
+<img src="./readme_resources/distance_clustering.svg" style="margin: auto">
 
 Step 4: 
 Cropping based on the previously deducted clusters
-<img src="./readme_resources/output.png">
+<img src="./readme_resources/output.png" style="margin: auto">
