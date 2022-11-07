@@ -15,14 +15,14 @@ class Predictor:
     def __init__(self, model_path: str):
         # self.model = load_model(model_path)
         self.julia = Main
-        self.julia.include(str(ROOT/'image_cropper'/"image_cropper.jl"))
+        self.julia.include(str(ROOT/"image_cropper"/"image_cropper.jl"))
 
-    def predict(self, image):
+    def predict(self, image: Image):
         # with open("not_processed.jpg", 'wb') as f:
         #     shutil.copyfileobj(image, f)
-        image = self.julia.processing("ISIC_0028328.jpg", "datasets\\HAM10000")
-        # image = Image.open(image)
-        # image.show()
+        image.save("API/staged/staged.png")
+        image = self.julia.process("staged.png", "API/staged")
+        image = Image.open("API/staged/staged.png")
         # np_image = np.array(image).astype(float)
         # np_image = transform.resize(np_image, (256, 256, 3))
         # np_image = np.expand_dims(np_image, axis=0)

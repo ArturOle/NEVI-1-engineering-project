@@ -185,7 +185,7 @@ end
 function processing(
         quiet::Bool,
         image_name::String,
-        directory::String;
+        directory::String="datasets\\HAM10000";
         number_of_clusters=4,
         m=1.3,
         border=(10,10)
@@ -250,7 +250,15 @@ function process_all()
     close(io)
 end
 
+function process(
+    image_name::String,
+    directory::String
+        )
+    out = processing(true, image_name, directory)
+    save("$directory/$image_name", out)
+end
 
+# process("staged.png", "API\\staged")
 # processing("ISIC_0024326.jpg")
 # processing(true, "ISIC_0028329.jpg", "datasets\\HAM10000")
 # processing_test()
