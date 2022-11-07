@@ -1,5 +1,4 @@
 
-
 function range_check_smaller(calculated_range, projected_size, minimum_size, img_size)
 
     if projected_size[1] < minimum_size[1]

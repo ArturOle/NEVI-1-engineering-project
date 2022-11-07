@@ -41,7 +41,7 @@ end
 function euclidian_distance_alt(p1, p2)
     sum = 0
 
-    for i in 1:length(p1)
+    for i in eachindex(p1)
         sum += abs2(p1[i] - p2[i])
     end
 
@@ -109,7 +109,6 @@ function density_clustering(db, img_size; eps=6.2, cluster_size=30)
     return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
 end
 
-
 function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
 
     (clustered, cluster_counter) = DBSCAN(db, eps, cluster_size)
@@ -127,6 +126,14 @@ function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
 
     [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
     best = findmin(decision_dictionary)
- 
-    return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
+    result = filtered_best_coordinates(clustered, best)
+    return result
 end
+
+function filtered_best_coordinates(clustered, best)
+    best_coordinates = [
+        (x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best
+    ]
+    return [best[2], best_coordinates]
+end
+

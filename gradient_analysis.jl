@@ -1,7 +1,7 @@
 using CSV
 using Plots
 using DataFrames
-include("FCM.jl")
+include("image_cropper/clustering/FCM.jl")
 
 function middle(img_size::Tuple)
     img_size_h = img_size[1]
