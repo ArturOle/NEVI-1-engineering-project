@@ -105,4 +105,4 @@ Distance clustering done with custom implementation of Density-Based Spatial Clu
 ### Step 4: 
 Cropping based on the previously deducted clusters
 
-<img src="./readme_resources/output.png">
+<img src="./readme_resources/output.png" style="margin: auto">
