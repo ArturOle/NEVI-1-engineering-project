@@ -87,18 +87,22 @@ Bowen's diesease
 
 Using unsupervised machine learning techniques algorithm is extracting the area of intrest to meaningfully support the neural network by decreasing dimentions of an image without losing crutial patterns and inforamtion embedded into the original image.
 
-Step 1: 
+### Step 1: 
 Image input
+
 <img src="./readme_resources/original.png">
 
-Step 2: 
+### Step 2: 
 Color clustering done with custom implementation of Fuzzy C-Means
+
 <img src="./readme_resources/color_clustering.svg">
 
-Step 3:
+### Step 3:
 Distance clustering done with custom implementation of Density-Based Spatial Clustering for Application with Noise
+
 <img src="./readme_resources/distance_clustering.svg">
 
-Step 4: 
+### Step 4: 
 Cropping based on the previously deducted clusters
+
 <img src="./readme_resources/output.png">
