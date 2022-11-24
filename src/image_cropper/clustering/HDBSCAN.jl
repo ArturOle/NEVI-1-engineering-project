@@ -1,5 +1,7 @@
-include("utils/graph.jl")
 using Distributions
+using BenchmarkTools
+using Combinatorics
+include("utils/graph.jl")
 
 
 function find_elem(array, elem)
@@ -9,6 +11,64 @@ function find_elem(array, elem)
         end
     end
     return 0
+end
+
+function adjacency_matrix(data::Matrix)
+    
+    adj_size = size(data, 1)
+    adjacency_matrix = zeros(Float64, (adj_size, adj_size))
+
+    for (i, row_i) in enumerate(eachrow(data))
+        for (j, row_j) in enumerate(eachrow(data))
+            if i != j
+                if adjacency_matrix[i,j] == 0
+                    dist = euclidian_distance_alt(row_i, row_j)
+                    adjacency_matrix[i,j] = dist
+                    adjacency_matrix[j,i] = dist
+                end
+            end
+        end
+    end
+    
+    return adjacency_matrix
+end
+
+function adjacency_matrix_alt(data::Matrix)
+    adj_size = size(data, 1)
+    adjacency_matrix = zeros(Float64, (adj_size, adj_size))
+
+    all_rows = enumerate(eachrow(data))
+    for (i, row_i) in all_rows
+        for (j, row_j) in all_rows
+            if i != j
+                if adjacency_matrix[i,j] == 0
+                    dist = euclidian_distance_alt(row_i, row_j)
+                    adjacency_matrix[i,j] = dist
+                    adjacency_matrix[j,i] = dist
+                end
+            end
+        end
+    end
+
+    return adjacency_matrix
+end
+
+function prim(data::Matrix)
+    adm = adjacency_matrix(data)
+    display(adm)
+    # while edge_number < size(data,2)
+    #     edge_number = 1
+    #     data[edge_number, 3] = 1 
+    # end
+    # for first_point in eachrow(data)
+
+    #     min_value = Inf
+    #     x = 0
+    #     y = 0
+    #     for second_point in eachrow(data)
+
+    #     end
+    # end
 end
 
 function prim(graph::Graph)
@@ -45,7 +105,7 @@ function prim(graph::Graph)
         deleteat!(unvisited_points, index)
     end
 
-    display(msp)
+    # display(msp)
 end
 
 function euclidian_distance_alt(p1, p2)
@@ -82,31 +142,37 @@ function HDBSCAN(graph::Graph, m_pts::Int64) # m_pts - minimum number of points
         sort!(point.connections, by=up->up.weight)
         point.core_distance = sum(up->up.weight, point.connections[1:m_pts])
     end
-    display(graph.points[1:5])
+    # display(graph.points[1:5])
     minimum_spanning_tree = prim(graph)
 end
 
 function test_env()
+    data = setup()
+    display(adjacency_matrix_alt(data))
+    @benchmark adjacency_matrix_alt(data)
+    # @benchmark adjacency_matrix_alt(data) setup=(data=setup())
+    # @time HDBSCAN(generate_map(data), 4)
+end
 
-    data = Matrix{Int64}(undef, 30, 2)
+function setup()
+    data = Matrix{Int64}(undef, 3000, 2)
 
-    for i=1:10
+    for i=1:100
         data[i, 1] = Int(floor(rand(Normal(1 ,40))))
         data[i, 2] = Int(floor(rand(Normal(1 ,40))))
 
     end
-    for i=10:20
+    for i=100:200
         data[i, 1] = Int(floor(rand(Normal(150 ,10))))
         data[i, 2] = Int(floor(rand(Normal(15 ,10))))
 
     end
-    for i=20:30
+    for i=200:300
         data[i, 1] = Int(floor(rand(Normal(300 ,15))))
         data[i, 2] = Int(floor(rand(Normal(300, 5))))
 
     end
-
-    @time HDBSCAN(generate_map(data), 4)
+    return data
 end
 
 test_env()
