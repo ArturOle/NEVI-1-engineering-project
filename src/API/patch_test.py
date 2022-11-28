@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import os
 import unittest
 from manager import Manager
@@ -9,24 +8,20 @@ class MockEvent:
     event_type: str = "patch"
     path: str = "/F5D1C6B3-2B0E-424D-88B4-DA238E9F08A0/-NDO2TfUs6z7wYouF1O8"
     data: dict = {
-        'image_url': 'https://media.istockphoto.com/photos/mole-picture-id514399089?k=20&m=514399089&s=612x612&w=0&h=-qhWKCmJWJwTiGNlGKxuhsRps1c_l89K7Q3QxZo5n3g=',
+        'image_url': 'https://firebasestorage.googleapis.com:443/v0/b/nevi-59237.appspot.com/o/images%2Fposts%2FF5D1C6B3-2B0E-424D-88B4-DA238E9F08A0%2F2022-10-12T10:58:31Z.jpg?alt=media&token=1254a167-9437-421d-b6e8-ec57390e13dc',
         'diagnose': 'false',
+        'image_height': 414,
+        'created_at': 1664720169.715472
     }
 
 
-# def setUp(self) -> None:
-#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
-#     cred = credentials.Certificate("nevi.json")
-#     self.fire = initialize_app(cred)
-#     self.event = MockEvent()
+class TestManager(unittest.TestCase):
+    def setUp(self) -> None:
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
+        cred = credentials.Certificate("nevi.json")
+        self.fire = initialize_app(cred)
+        self.event = MockEvent()
 
-# def test_listner_on_patch(self):
-#     app = Manager()
-#     app.listner(self.event)
-
-
-if __name__ == "__main__":
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
-    event = MockEvent()
-    app = Manager()
-    app.listner(event)
+    def test_listner_on_patch(self):
+        app = Manager()
+        app.listner(self.event)

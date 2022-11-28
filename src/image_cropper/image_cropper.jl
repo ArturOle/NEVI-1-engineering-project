@@ -260,7 +260,6 @@ function process_all()
                 failed_counter += 1 
                 flush(io)
             end
-
         end
 
         @info "Number of failed image processes: $failed_counter"
@@ -269,6 +268,13 @@ function process_all()
     close(io)
 end
 
+function process(
+    image_name::String,
+    directory::String
+        )
+    out = processing(true, image_name, directory)
+    save("$directory/$image_name", out)
+end
 
 processing("ISIC_0028231.jpg")
 # processing(true, "ISIC_0028328.jpg")
