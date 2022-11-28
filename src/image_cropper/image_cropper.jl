@@ -140,6 +140,21 @@ function resize_cluster_boundries(main_cluster)
     return cluster_boundries
 end
 
+function present_results(img, distance_cluster)
+    plot(img)
+    display(distance_cluster)
+    cluster = distance_cluster[2]
+    scatter!(
+        cluster,
+        label="Found cluster", 
+        markersize=6,
+        markerstrokewidth=0,
+        color="#8cffec"
+    )
+    
+    display(current())
+end
+
 function stage_information(image_name)
     println(
         """
@@ -179,8 +194,10 @@ function processing(
         minimum_size=MINIMUM_SIZE,
         border=border
     )
+    present_results(resized_image, main_cluster)
     return cropped_image
     display(cropped_image)
+    
 end
 
 function processing(
@@ -197,7 +214,6 @@ function processing(
         
     data = fuzzy_c_means(img, number_of_clusters, m, true)
     choosen_cluster = middle_cluster(number_of_clusters, img_size, data)[2]
-
     db = extract_dimentions(choosen_cluster, data)
     cluster_size = reverse(db[:, end])
     main_cluster = density_clustering(db, cluster_size, true)
@@ -210,6 +226,7 @@ function processing(
         minimum_size=MINIMUM_SIZE, 
         border=border
     )
+    
     return imresize(cropped_image, MINIMUM_SIZE)
 end
 

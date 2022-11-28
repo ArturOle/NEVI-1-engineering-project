@@ -321,7 +321,7 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
         scatter!(scatter_array_1, scatter_array_2, alpha=1, msize=4, markerstrokewidth=0)
         
     end
-
+    yflip!(true)
     # scatter!(scatter_array_1, scatter_array_2, scatter_array_3)
     # scatter!(V[2,:], V[3, :])
     display(current())

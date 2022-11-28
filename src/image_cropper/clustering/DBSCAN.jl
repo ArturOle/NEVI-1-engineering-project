@@ -92,6 +92,7 @@ function density_clustering(db, img_size; eps=6.2, cluster_size=30)
         cluster = [(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == i]
         scatter!(cluster, label="clu: $i", markersize=6, markerstrokewidth=0)
     end
+    yflip!(true)
     display(current())
 
     for point in clustered
