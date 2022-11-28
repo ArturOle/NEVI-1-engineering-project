@@ -9,7 +9,7 @@ Skin cancer affects people of all skin tones but in this project we are focusing
 
 NEVI is a system for supporting medical diagnosis of various types of skin mutations/pathologies specialized for skin cancer detection. The system consists of two main parts:
 
-1) Imgae processing
+1) Image processing
 
     Image processing consists of color-based clustering, distance clustering and the custom cropping mechanism.
     This part was written in Julia Programming Lenguage because of it's speed and elegancy.
