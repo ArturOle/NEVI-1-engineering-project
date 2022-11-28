@@ -21,3 +21,4 @@
 mymodel*
 
 !/data/readme_resources/*.png
+!/data/readme_resources/*.jpg
