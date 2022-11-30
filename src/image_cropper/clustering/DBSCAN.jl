@@ -1,5 +1,6 @@
 using Distributions
 using Plots
+using BenchmarkTools
 
 
 mutable struct Point
@@ -104,9 +105,11 @@ function density_clustering(db, img_size; eps=6.2, cluster_size=30)
         end
     end
 
-    [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
+    for (k,x) in decision_dictionary
+        decision_dictionary[k] = [mean(x)]
+    end
+
     best = findmin(decision_dictionary)
- 
     return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
 end
 
@@ -125,7 +128,10 @@ function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
         end
     end
 
-    [decision_dictionary[k] = [mean(x)] for (k,x) in decision_dictionary]
+    for (k,x) in decision_dictionary
+        decision_dictionary[k] = [mean(x)]
+    end
+
     best = findmin(decision_dictionary)
     result = filtered_best_coordinates(clustered, best)
     return result
@@ -137,4 +143,3 @@ function filtered_best_coordinates(clustered, best)
     ]
     return [best[2], best_coordinates]
 end
-
