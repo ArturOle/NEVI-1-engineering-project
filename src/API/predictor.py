@@ -1,27 +1,27 @@
 from skimage import transform
 from PIL import Image
 from keras.applications.efficientnet_v2 import preprocess_input
-from keras.models import load_model
 import numpy as np
 from julia import Main
-from os import environ, path
-from pathlib import Path, PurePath
+from pathlib import Path
 import logging
-import shutil
 
-ROOT = Path(__file__).resolve().parents[1]
+from cascade.cascade import Cascade
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class Predictor:
-    def __init__(self, model_path: str):
-        self.model = load_model(model_path)
+    def __init__(self):
+        self.model = Cascade()
         self.julia = Main
-        self.julia.include(str(ROOT/"image_cropper"/"image_cropper.jl"))
+        self.julia.include(str(ROOT/"src"/"image_cropper"/"image_cropper.jl"))
 
     def predict(self, image: Image):
         image = self.process(image)
         np_image = self.prepare_for_prediction(image)
-        result = self.model.predict(np_image)[0]
+        result = self.model.predict(np_image)
         print(result)
         return self.map_results(result)
 
@@ -34,9 +34,9 @@ class Predictor:
 
     def process(self, image: Image):
         try:
-            image.save("API/staged.png")
-            image = self.julia.process("staged.png", "API")
-            image = Image.open("API/staged.png")
+            image.save("src/API/staged.png")
+            image = self.julia.process("staged.png", "src/API")
+            image = Image.open("src/API/staged.png")
         except Exception as err:
             logging.error(err)
         finally:
@@ -44,20 +44,19 @@ class Predictor:
 
     def map_results(self, results: list):
         map_results = {
-            0: "Actinic keratoses and intraepithelial carcinoma / Bowen's diesease",
-            1: "Basal cell carcinoma",
-            2: "Benign keratosis-like lesions",
-            3: "Dermatofibroma",
-            4: "Melanoma",
-            5: "Melanocytic nevi",
-            6: "Vascular lesions"
+            'AKIEC': "Actinic keratoses and intraepithelial carcinoma / Bowen's diesease",
+            'BCC': "Basal cell carcinoma",
+            'BKL': "Benign keratosis-like lesions",
+            'DF': "Dermatofibroma",
+            'MEL': "Melanoma",
+            'NV': "Melanocytic nevi",
+            'VASC': "Vascular lesions"
         }
-        print(map_results[np.argmax(results)])
-        return map_results[np.argmax(results)]
+        print(map_results[results])
+        return map_results[results]
 
 
 if __name__ == "__main__":
     img = Image.open(r"D:\Projects\thesis\data\grouped_images_by_type\akiec\ISIC_0010512.jpg")
-    pred = Predictor(r"D:\Projects\thesis\src\model\NEVI_0.2.0.h5")
+    pred = Predictor()
     pred = pred.predict(img)
-    # print(pred)

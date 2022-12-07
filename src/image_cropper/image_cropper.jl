@@ -18,6 +18,9 @@ Possible Solution:
     -   HDBSCAN
     -   Parameter Approximation ( as values are int, pixel location values )
 
+Change for color clustering selection method is needed:
+    - gaussian?
+
 """
 
 # Minimum size the image can be cropped to (will be variable later)
@@ -170,7 +173,7 @@ function processing(
         directory::String="data\\datasets\\HAM10000",
         number_of_clusters=4,
         m=1.3,
-        border=(20,20),
+        border=(5,5),
         plot_engine=gr
         )
 
@@ -194,7 +197,7 @@ function processing(
         minimum_size=MINIMUM_SIZE,
         border=border
     )
-    present_results(resized_image, main_cluster)
+    # present_results(resized_image, main_cluster)
     return cropped_image
     display(cropped_image)
     
@@ -276,7 +279,7 @@ function process(
     save("$directory/$image_name", out)
 end
 
-processing("ISIC_0028231.jpg")
+# processing("ISIC_0032949.jpg")
 # processing(true, "ISIC_0028328.jpg")
 # processing_test()
 # process_all()
