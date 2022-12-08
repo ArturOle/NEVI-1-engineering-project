@@ -139,7 +139,7 @@ end
 
 function filtered_best_coordinates(clustered, best)
     best_coordinates = [
-        (x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best
+        (x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]
     ]
     return [best[2], best_coordinates]
 end

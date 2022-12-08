@@ -205,8 +205,8 @@ end
 
 function processing(
         quiet::Bool,
-        image_name::String="ISIC_0024943.jpg";
-        directory::String="data\\datasets\\HAM10000", 
+        image_name::String="ISIC_0024943.jpg",
+        directory::String="data\\datasets\\HAM10000";
         number_of_clusters=4, 
         m=1.3, 
         border=(10,10)
@@ -280,6 +280,6 @@ function process(
 end
 
 # processing("ISIC_0032949.jpg")
-# processing(true, "ISIC_0028328.jpg")
+processing(true, "ISIC_0028328.jpg")
 # processing_test()
 # process_all()

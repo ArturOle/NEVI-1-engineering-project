@@ -45,8 +45,8 @@ class Cascade:
     def map_results_root(self, results: list):
         map_results = {
             0: 'BCC_DF',
-            1: 'MEL_NV',
-            2: 'BKL_AKIEC',
+            1: 'BKL_AKIEC',
+            2: 'MEL_NV',
             3: 'VASC'
         }
         print(map_results[argmax(results)])

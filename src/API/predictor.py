@@ -57,6 +57,6 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    img = Image.open(r"D:\Projects\thesis\data\grouped_images_by_type\akiec\ISIC_0010512.jpg")
+    img = Image.open(r"D:\Projects\thesis\data\secret_test_folder\mel\ISIC_0034172.jpg")
     pred = Predictor()
     pred = pred.predict(img)
