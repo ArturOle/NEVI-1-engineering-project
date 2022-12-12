@@ -280,6 +280,6 @@ function process(
 end
 
 # processing("ISIC_0032949.jpg")
-processing(true, "ISIC_0028328.jpg")
+# processing(true, "ISIC_0028328.jpg")
 # processing_test()
 # process_all()

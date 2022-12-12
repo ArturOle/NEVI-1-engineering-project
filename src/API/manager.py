@@ -21,7 +21,7 @@ class Manager(FastAPI):
     # need to be moved to env varaibles V
     _path = "/posts"
     _url = "https://nevi-59237-default-rtdb.europe-west1.firebasedatabase.app"
-    _cert = "nevi.json"
+    _cert = "NEVI.json"
     _firebase_app = None
     # ^
 
@@ -71,9 +71,7 @@ class Manager(FastAPI):
             if image:
                 image = requests.get(image, stream=True)
                 # print(image)
-                prediction = Predictor(
-                    r"D:\Projects\Thesis\thesis\model\NEVI_0.2.0.h5"
-                ).predict(image)
+                prediction = Predictor().predict(image)
                 db.reference(
                     path=''.join(["/", self._path, event.path, "/diagnose"]),
                     url=self._url, app=self.firebase_app
