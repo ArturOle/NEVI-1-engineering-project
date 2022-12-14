@@ -15,12 +15,12 @@ ROOT = Path(__file__).resolve().parents[2]
 class Predictor:
     def __init__(self):
         self.model = Cascade()
-        #self.julia = Main
+        # self.julia = Main
         # self.julia.include(str(ROOT/"src"/"image_cropper"/"image_cropper.jl"))
 
-    def predict(self, image: Image):
+    def predict(self, image):
+        image = Image.open(image.raw)
         # image = self.process(image)
-        image
         np_image = self.prepare_for_prediction(image)
         result = self.model.predict(np_image)
         print(result)
