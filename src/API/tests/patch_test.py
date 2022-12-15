@@ -18,10 +18,9 @@ class MockEvent:
 class TestManager(unittest.TestCase):
     def setUp(self) -> None:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
-        cred = credentials.Certificate("nevi.json")
-        self.fire = initialize_app(cred)
         self.event = MockEvent()
 
     def test_listner_on_patch(self):
         app = Manager()
         app.listner(self.event)
+        assert app.last_diagnosis == "Melanocytic nevi"

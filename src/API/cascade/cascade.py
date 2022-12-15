@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from numpy import argmax
 
 
-ROOT_MODEL = r"D:\Projects\thesis\src\model\cascade\layer1\experimental_model_layer1.h5"
-FIRST_LAYER_BCC_DF = r"D:\Projects\thesis\src\model\cascade\layer2\experimental_model_layer22.h5"
-FIRST_LAYER_MEL_NV = r"D:\Projects\thesis\src\model\cascade\layer2\experimental_model_layer2_mel_nv.h5"
-FIRST_LAYER_BKL_AKIEC = r"D:\Projects\thesis\src\model\cascade\layer2\experimental_model_layer2_bkl_akiec.h5"
+ROOT_MODEL = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer1\experimental_model_layer1.h5"
+FIRST_LAYER_BCC_DF = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer22.h5"
+FIRST_LAYER_MEL_NV = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer2_mel_nv.h5"
+FIRST_LAYER_BKL_AKIEC = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer2_bkl_akiec.h5"
 
 
 @dataclass

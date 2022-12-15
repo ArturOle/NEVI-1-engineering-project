@@ -36,6 +36,7 @@ class Manager(FastAPI):
         )
         self._log = logging.getLogger(__name__)
         self.ref = None
+        self.last_diagnosis = None
 
     @property
     def firebase_app(self):
@@ -59,13 +60,6 @@ class Manager(FastAPI):
         self.ref.listen(self.listner)
 
     def listner(self, event):
-        self._log.info(
-            'Data: event_type={} path={} other={}'.format(
-                event.event_type,
-                event.path,
-                event.data
-            )
-        )
         if event.event_type == "patch":
             image = event.data.get("image_url", None)
             if image:
@@ -76,6 +70,7 @@ class Manager(FastAPI):
                     path=''.join(["/", self._path, event.path, "/diagnose"]),
                     url=self._url, app=self.firebase_app
                 ).set(prediction)
+                self.last_diagnosis = prediction
 
     def home(self):
         return self.templates.TemplateResponse("home.html")
