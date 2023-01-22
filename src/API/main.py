@@ -2,7 +2,9 @@ from manager import Manager
 from fastapi.responses import HTMLResponse
 from os import environ
 
-environ["GOOGLE_APPLICATION_CREDENTIALS"] = "nevi.json"
+environ["GOOGLE_APPLICATION_CREDENTIALS"] = "NEVI.json"
+exception = None
+
 
 app = Manager()
 app.listen()

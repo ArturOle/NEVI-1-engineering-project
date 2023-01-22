@@ -113,7 +113,7 @@ function density_clustering(db, img_size; eps=6.2, cluster_size=30)
     return [best[2],[(x.coordinates[1], x.coordinates[2]) for x in clustered if x.label == best[2]]]
 end
 
-function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=60)
+function density_clustering(db, img_size, quiet::Bool; eps=6.2, cluster_size=30)
 
     (clustered, cluster_counter) = DBSCAN(db, eps, cluster_size)
     mid = middle(img_size)

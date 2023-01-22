@@ -70,8 +70,9 @@ class Cascade:
 
     def map_results_bkl_akiec(self, results: list):
         map_results = {
-            0: 'BKL',
-            1: 'AKIEC'
+            1: 'BKL',
+            0: 'AKIEC'
         }
         print(map_results[argmax(results)])
         return map_results[argmax(results)]
+ 

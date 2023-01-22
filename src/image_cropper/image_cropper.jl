@@ -197,7 +197,7 @@ function processing(
         minimum_size=MINIMUM_SIZE,
         border=border
     )
-    # present_results(resized_image, main_cluster)
+    present_results(resized_image, main_cluster)
     return cropped_image
     display(cropped_image)
     
@@ -279,7 +279,7 @@ function process(
     save("$directory/$image_name", out)
 end
 
-# processing("ISIC_0032949.jpg")
-# processing(true, "ISIC_0028328.jpg")
+# processing("ISIC_0024877.jpg")
+# processing(true, "ISIC_0028328.jpg", "data\\datasets\\HAM10000")
 # processing_test()
 # process_all()

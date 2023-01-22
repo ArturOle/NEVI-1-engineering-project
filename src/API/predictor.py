@@ -2,11 +2,11 @@ from skimage import transform
 from PIL import Image
 from keras.applications.efficientnet_v2 import preprocess_input
 import numpy as np
-from julia import Main
+from julia import Julia
 from pathlib import Path
 import logging
 
-from cascade.cascade import Cascade
+from .cascade.cascade import Cascade
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -15,16 +15,16 @@ ROOT = Path(__file__).resolve().parents[2]
 class Predictor:
     def __init__(self):
         self.model = Cascade()
-        # self.julia = Main
-        # self.julia.include(str(ROOT/"src"/"image_cropper"/"image_cropper.jl"))
+        self.julia = Julia()
+        self.julia.include(ROOT/"src"/"image_cropper"/"image_cropper.jl")
 
     def predict(self, image):
-        image = Image.open(image.raw)
-        # image = self.process(image)
+        image = Image.open(image)
+        image = self.process(image)
         np_image = self.prepare_for_prediction(image)
         result = self.model.predict(np_image)
         print(result)
-        return self.map_results(result)
+        return result
 
     def prepare_for_prediction(self, image: Image):
         np_image = np.array(image).astype(float)
@@ -35,9 +35,9 @@ class Predictor:
 
     def process(self, image: Image):
         try:
-            image.save("src/API/staged.png")
-            image = self.julia.process("staged.png", "src/API")
-            image = Image.open("src/API/staged.png")
+            image.save(str(ROOT/"src"/"API"/"staged.png"))
+            image = self.julia.process("staged.png", str(ROOT/"src"/"API"))
+            image = Image.open(str(ROOT/"src"/"API"/"staged.png"))
         except Exception as err:
             logging.error(err)
         finally:
@@ -58,6 +58,6 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    img = Image.open(r"D:\Projects\thesis\data\secret_test_folder\mel\ISIC_0034172.jpg")
+    img = Image.open(ROOT/"data"/"secret_test_folder"/"bcc"/"ISIC_0033720.jpg")
     pred = Predictor()
     pred = pred.predict(img)
