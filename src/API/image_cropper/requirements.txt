@@ -1,0 +1,12 @@
+BenchmarkTools &  v1.3.2
+CSV &  v0.10.8
+Colors &  v0.12.8
+Combinatorics &  v1.0.2
+DataFrames &  v1.3.6
+Distributions &  v0.25.66
+FileIO &  v1.15.0
+GameZero & v0.2.1
+Images &  v0.25.2
+Plots &  v1.31.5
+PyCall &  v1.94.1
+SimpleValueGraphs &  v0.4.1

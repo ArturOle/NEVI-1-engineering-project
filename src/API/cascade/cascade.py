@@ -1,12 +1,14 @@
 from keras.models import load_model
 from dataclasses import dataclass
 from numpy import argmax
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
 
-ROOT_MODEL = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer1\experimental_model_layer1.h5"
-FIRST_LAYER_BCC_DF = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer22.h5"
-FIRST_LAYER_MEL_NV = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer2_mel_nv.h5"
-FIRST_LAYER_BKL_AKIEC = r"C:\Program Files\Thesis\thesis\src\model\cascade\layer2\experimental_model_layer2_bkl_akiec.h5"
+ROOT_MODEL = ROOT/"src"/"model"/"cascade"/"layer1"/"experimental_model_layer1.h5"
+FIRST_LAYER_BCC_DF = ROOT/"src"/"model"/"cascade"/"layer2"/"experimental_model_layer22.h5"
+FIRST_LAYER_MEL_NV = ROOT/"src"/"model"/"cascade"/"layer2"/"experimental_model_layer2_mel_nv.h5"
+FIRST_LAYER_BKL_AKIEC = ROOT/"src"/"model"/"cascade"/"layer2"/"experimental_model_layer2_bkl_akiec.h5"
 
 
 @dataclass
@@ -15,7 +17,6 @@ class Models:
     first_layer_bcc_df_model = load_model(FIRST_LAYER_BCC_DF)
     first_layer_mel_nv_model = load_model(FIRST_LAYER_MEL_NV)
     first_layer_bkl_akiec_model = load_model(FIRST_LAYER_BKL_AKIEC)
-
 
 
 class Cascade:

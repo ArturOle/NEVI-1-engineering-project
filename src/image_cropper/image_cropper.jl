@@ -279,6 +279,7 @@ function process(
     save("$directory/$image_name", out)
 end
 
+#-# EXEMPLARY USAGE #-#
 # processing("ISIC_0024877.jpg")
 # processing(true, "ISIC_0028328.jpg", "data\\datasets\\HAM10000")
 # processing_test()

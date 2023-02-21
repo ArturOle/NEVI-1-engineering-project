@@ -18,12 +18,10 @@ from predictor import Predictor
 
 
 class Manager(FastAPI):
-    # need to be moved to env varaibles V
     _path = "/posts"
     _url = "https://nevi-59237-default-rtdb.europe-west1.firebasedatabase.app"
     _cert = "NEVI.json"
     _firebase_app = None
-    # ^
 
     _bucket = None
     _templates = None

@@ -108,35 +108,6 @@ function test_graph(graph::Graph)
     println(graph.paths)
 end
 
-""" Dijikstra algorith for shortest path in the graph.
-    
-Parameters:
-
-- start_point_id
-- end_point_id
-- graph
-
-"""
-function dijiksta(start_point_id::Int, end_point_id::Int, graph::Graph)
-
-
-    distances = init_distances(start_point_id::Int, graph::Graph)
-
-    println(distances)
-
-    println(point_at(graph, 2))
-end
-
-function init_distances(start_point_id::Int, graph::Graph)
-    distances = Dict()
-    
-    for point in graph.points
-        distances[point.id] = Inf
-    end
-    distances[start_point_id] = 0
-    
-    return distances
-end
 
 """
 Generator of graphs based on given points coordinates
@@ -168,7 +139,11 @@ function generate_map(x_coordinates, y_coordinates)
 						end
 					end
 					if create == true
-						path = UndirectedPath(path_id, Pair(points[i].id, points[j].id), sqrt(abs(x_coordinates[i]-x_coordinates[j])^2 + abs(y_coordinates[i]-y_coordinates[j])^2))
+						path = UndirectedPath(
+                            path_id,
+                            Pair(points[i].id, points[j].id),
+                            sqrt(abs(x_coordinates[i]-x_coordinates[j])^2 + abs(y_coordinates[i]-y_coordinates[j])^2)
+                        )
 						append!(paths, [path])
 						path_id +=1
 					end
@@ -210,7 +185,11 @@ function generate_map(coordinates)
 		for i in 1:len_x
 			for j in 1:i
 				if points[i] != points[j]
-					path = UndirectedPath(path_id, sqrt(abs(coordinates[i, 1]-coordinates[j, 1])^2 + abs(coordinates[i, 2]-coordinates[j, 2])^2), Pair(points[i].id, points[j].id))
+					path = UndirectedPath(
+                        path_id,
+                        sqrt(abs(coordinates[i, 1]-coordinates[j, 1])^2 + abs(coordinates[i, 2]-coordinates[j, 2])^2),
+                        Pair(points[i].id, points[j].id)
+                    )
 					paths[path_id] = path
 					path_id +=1
 				end
@@ -229,72 +208,3 @@ function generate_map(coordinates)
 	
 	return Graph(points, paths)
 end
-
-# nthperm([1,2,3,4], 2)
-
-# function _permutations(output::Vector, v::Vector, size::Int) 
-#     if size == 1
-#         append!(output, v)
-#         return
-#     end
-
-#     for i in 1:size
-#         _permutations(output, v, size - 1)
-#         if size % 2 == 0
-#             v[1], v[size] = v[size], v[1]
-#         else
-#             v[size], v[i] = v[i], v[size]
-#         end
-#     end
-# end
-
-# function heap_permutations(v::Vector)
-#     size = length(v)
-#     out = Vector()
-#     _permutations(out, v, size)
-#     return reshape(out, (size, :))'
-# end
-
-# mutable struct iteration
-#     value::Int64
-# end
-
-# function _permutations(output::Vector, v::Vector, size::Int, max_iter, iter)
-    
-#     println(iter)
-#     if size == 1 || max_iter <= iter.value
-#         append!(output, v)
-#         return
-#     else
-
-#         for i in 1:size
-#             iter.value += 1
-#             _permutations(output, v, size-1, max_iter, iter)
-            
-#             if max_iter <= iter.value
-#                 append!(output, v)
-#                 return
-#             else
-#                 if size % 2 == 0
-#                     v[1], v[size] = v[size], v[1]
-#                 else
-#                     v[size], v[i] = v[i], v[size]
-#                 end
-#             end
-            
-#         end
-#     end
-    
-# end
-
-# function heap_permutations(v::Vector, max_iteration)
-#     size = length(v)
-#     out = Vector()
-#     max_iter = max_iteration
-#     iter = iteration(0)
-#     _permutations(out, v, size, max_iter, iter)
-#     display(out)
-#     #return out
-# end
-
-# heap_permutations([1,2,3,4], 3)

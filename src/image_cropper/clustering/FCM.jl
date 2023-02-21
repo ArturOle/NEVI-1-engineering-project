@@ -291,15 +291,11 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
     # Updating the partition tables based on the calculated distances
     U = update_partition_table(U, distances, m)
 
-    # Criterion function ( currently unused )
-    #J = criterion_function(U, distances)
-
     while abs(frobenius_norm(U_prev, U)) > ϵ
         V = cluster_centers(U, class_data, m)
         distances = euclidian_distances(V, class_data)
         U_prev = U
         U = update_partition_table(U, distances, m)
-        #J = criterion_function(U, distances)
     end
 
     classified = classified_pixel(U, data)
@@ -322,8 +318,6 @@ function fuzzy_c_means(data, number_of_clusters, m, ϵ=1e-3)
         
     end
     yflip!(true)
-    # scatter!(scatter_array_1, scatter_array_2, scatter_array_3)
-    # scatter!(V[2,:], V[3, :])
     display(current())
     return (classified, U, V)
     

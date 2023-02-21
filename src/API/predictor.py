@@ -23,7 +23,7 @@ class Predictor:
         image = self.process(image)
         np_image = self.prepare_for_prediction(image)
         result = self.model.predict(np_image)
-        print(result)
+        logging.info(result)
         return result
 
     def prepare_for_prediction(self, image: Image):

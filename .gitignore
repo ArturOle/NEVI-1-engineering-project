@@ -16,7 +16,6 @@
 *.toml
 *.log
 *.json
-*.txt
 
 mymodel*
 
